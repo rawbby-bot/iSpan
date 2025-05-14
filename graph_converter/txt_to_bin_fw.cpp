@@ -82,7 +82,7 @@ main(int argc, char** argv)
   ftruncate(fd4, edge_count * sizeof(vertex_t));
   vertex_t* adj = (vertex_t*)mmap(NULL, edge_count * sizeof(vertex_t), PROT_READ | PROT_WRITE, MAP_SHARED, fd4, 0);
 
-  int fd5 = open("head.bin", O_CREAT | O_RDWR, 00666);
+  int fd5 = open("fw_head.bin", O_CREAT | O_RDWR, 00666);
   ftruncate(fd5, edge_count * sizeof(vertex_t));
   vertex_t* head = (vertex_t*)mmap(NULL, edge_count * sizeof(vertex_t), PROT_READ | PROT_WRITE, MAP_SHARED, fd5, 0);
 

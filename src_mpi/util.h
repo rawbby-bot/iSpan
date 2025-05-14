@@ -1,11 +1,11 @@
 #ifndef __UTIL_H__
 #define __UTIL_H__
 #include <algorithm>
+#include <cstdint>
 #include <mpi.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <sys/stat.h>
-#include <cstdint>
 
 #define LOCK(vert, lock) while (!__sync_bool_compare_and_swap(lock + vert, 0, -1))
 #define UNLOCK(vert, lock) lock[vert] = 0
