@@ -10,7 +10,7 @@
 template<typename vertex_t,
 	typename index_t,
 	typename color_t>
-void 
+void
 openmp_wcc(
 		vertex_t *csr,
 		index_t *beg_pos,
@@ -37,7 +37,7 @@ openmp_wcc(
         {
 		    if(tid==0)std::cout<<"Iteration: "<<level++<<"\n";
         }
-		//if(tid==0) global_color=0;
+
 #pragma omp barrier
 
 		bool is_redirect_local=false;
@@ -48,17 +48,16 @@ openmp_wcc(
 		{
             vertex_t vert_id = small_queue[fq_v_id];
 
-			if(vert_color[vert_id]!=NEGATIVE && 
+			if(vert_color[vert_id]!=NEGATIVE &&
 					vert_color[vert_id]<global_color_beg) continue;
 			index_t my_beg = beg_pos[vert_id];
 			index_t my_end = beg_pos[vert_id+1];
 			for(; my_beg<my_end; my_beg++)
 			{
 				vertex_t dest=csr[my_beg];
-/// for scc
+
                 if(scc_id[dest] != 0)
                     continue;
-//                printf("dest, %d\n", dest);
 
 				if(vert_color[vert_id]==NEGATIVE && vert_color[dest]==NEGATIVE)
 				{
@@ -71,7 +70,7 @@ openmp_wcc(
 				else if(vert_color[vert_id]!=NEGATIVE && vert_color[dest]==NEGATIVE)
 				{
 					if(!is_change_local) is_change_local=true;
-					vert_color[dest]=vert_color[vert_id];	
+					vert_color[dest]=vert_color[vert_id];
 				}
 				else if(vert_color[vert_id]==NEGATIVE && vert_color[dest]!=NEGATIVE)
 				{
@@ -101,8 +100,7 @@ openmp_wcc(
 
 						if(src_color>dest_color)
 						{
-							//possibly, the larger color is just updated.
-							//thereby, we have to check again.
+
 							ret=__sync_bool_compare_and_swap(color_redirect+
 									src_color,src_color,dest_color);
 						}
@@ -120,14 +118,14 @@ openmp_wcc(
 
 #pragma omp barrier
 		for(index_t i=0;i<thread_count;i++)
-			if(is_redirect[i]) 
+			if(is_redirect[i])
 			{
 				is_redirect_local=true;
 				break;
 			}
 
 		for(index_t i=0;i<thread_count;i++)
-			if(is_change[i]) 
+			if(is_change[i])
 			{
 				is_change_local=true;
 				break;
@@ -139,7 +137,6 @@ openmp_wcc(
 			    <<" "<<wtime()-tm<<" seconds\n";
         }
 
-		//redirect color updates
 		if(tid==0){
 			index_t color_count=0;
 			for(index_t i=global_color_beg;i<global_color[0];i++)
@@ -151,15 +148,14 @@ openmp_wcc(
             {
 			    std::cout<<"WCC groups: "<<color_count<<"\n";
             }
-			//global_color=color_count;
-		}
 
+		}
 
 		if((is_change_local==false) && (is_redirect_local==false))
         {
-            //printf("global color, %d\n", global_color[0]);
+
             break;
         }
 	}
-	return ;	
+	return ;
 }

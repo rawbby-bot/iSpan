@@ -1,11 +1,11 @@
+import csv
 import os
 import sys
-import csv
 
 ignore_file = ["edge_fw.csv", "edge_bw.csv", "edge_count.csv"]
 
-def get_line_list(input_file):
 
+def get_line_list(input_file):
     line_list = []
 
     with open(input_file, "r") as csvfile:
@@ -14,20 +14,19 @@ def get_line_list(input_file):
 
     return line_list
 
-def write_list_to_csv(result_list, output_file):
 
+def write_list_to_csv(result_list, output_file):
     with open(output_file, "w") as csv_file:
-        csv_write = csv.writer(csv_file, delimiter = ',')
+        csv_write = csv.writer(csv_file, delimiter=',')
         for line in result_list:
             csv_write.writerow(line)
 
 
 def get_edge_count(input_folder):
-
     file_list = os.listdir(input_folder)
     result_fw = []
     result_bw = []
-#    print(file_list)
+    #    print(file_list)
     for file_one in file_list:
         if file_one in ignore_file:
             continue
@@ -52,12 +51,15 @@ def get_edge_count(input_folder):
         result_bw.append([file_one[:-4]] + edge_bw)
 
     return result_fw, result_bw
+
+
 #    print result_list
 
 if __name__ == "__main__":
 
     if len(sys.argv) != 2:
-        print "Usage: python get_edge_count.py <input_folder>"
+        print
+        "Usage: python get_edge_count.py <input_folder>"
         exit(-1)
     input_folder = sys.argv[1]
     print("Output file edge_fw/bw.csv will be stored under ", input_folder)

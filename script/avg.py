@@ -1,9 +1,10 @@
+import csv
 import os
 import os.path
 import sys
-import csv
 
 file_all = "file_name.txt"
+
 
 def print_head(out_file):
     fp = open(out_file, "w")
@@ -11,11 +12,13 @@ def print_head(out_file):
     fp.writelines(content + "\n")
     fp.close()
 
+
 def deal_graph(file_name, out_file):
     read_csv = csv.reader(open(file_name))
 
     graph_name = (file_name.split('result_')[1]).split('.')[0]
-    print graph_name
+    print
+    graph_name
 
     flag = 0
     content = ""
@@ -31,32 +34,35 @@ def deal_graph(file_name, out_file):
             content += "," + line[1].strip()
             flag += 1
 
-#    print content
+    #    print content
     fp = open(out_file, "a")
     fp.writelines(content + "\n")
     fp.close()
 
+
 def deal_all(file_name, out_file):
     fp = open(file_name, "r")
     data = fp.readlines()
-#    print data
+    #    print data
     if len(data) < 1:
-        print "No csv result files\n"
+        print
+        "No csv result files\n"
     else:
         print_head(out_file)
         for one in data:
             file_in = one.strip()
-#            print file_in
+            #            print file_in
             deal_graph(file_in, out_file)
 
 
 if __name__ == "__main__":
     if len(sys.argv) < 3:
-        print "\nUsage: python avg.py <input_path> <output_file>\n"
+        print
+        "\nUsage: python avg.py <input_path> <output_file>\n"
         exit()
 
-    print len(sys.argv), sys.argv[0], sys.argv[1], sys.argv[2]
-    cmd = "ls " + sys.argv[1] +  "result_*.csv > " + file_all;
+    print
+    len(sys.argv), sys.argv[0], sys.argv[1], sys.argv[2]
+    cmd = "ls " + sys.argv[1] + "result_*.csv > " + file_all;
     os.system(cmd)
     deal_all(file_all, sys.argv[2])
-

@@ -6,7 +6,7 @@
 
 inline double wtime()
 {
-	double time[2];	
+	double time[2];
 	struct timeval time1;
 	gettimeofday(&time1, NULL);
 

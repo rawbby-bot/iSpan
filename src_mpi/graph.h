@@ -22,7 +22,7 @@ class graph
 	public:
 		graph(){};
 		~graph(){};
-		graph(const char *fw_beg_file, 
+		graph(const char *fw_beg_file,
 				const char *fw_csr_file,
                 const char *bw_beg_file,
                 const char *bw_csr_file);

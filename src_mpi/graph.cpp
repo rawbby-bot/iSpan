@@ -6,14 +6,13 @@ graph::graph(
 		const char *bw_csr_file)
 {
 	double tm=wtime();
-	
+
 	typedef unsigned int index_tt;
 	typedef int vertex_tt;
 
 	vert_count=fsize(fw_beg_file)/sizeof(index_tt) - 1;
 	edge_count=fsize(fw_csr_file)/sizeof(vertex_tt);
-    
-    //fw
+
 	FILE *file=fopen(fw_beg_file, "rb");
 	if(file==NULL)
 	{
@@ -38,17 +37,14 @@ graph::graph(
 	assert(ret==edge_count);
 	fclose(file);
 
-    //converting to uint32_t
 	fw_beg_pos = new index_tt[vert_count+1];
 	fw_csr = new vertex_t[edge_count];
-	
+
 	for(index_t i=0;i<vert_count+1;++i)
 		fw_beg_pos[i]=(index_tt)tmp_beg_pos[i];
 
 	for(index_tt i=0;i<edge_count;++i)
 		fw_csr[i]=(vertex_t)tmp_csr[i];
-
-    // bw
 
 	file=fopen(bw_beg_file, "rb");
 	if(file==NULL)
@@ -74,10 +70,9 @@ graph::graph(
 	assert(ret==edge_count);
 	fclose(file);
 
-    //converting to uint32_t
 	bw_beg_pos = new index_tt[vert_count+1];
 	bw_csr = new vertex_t[edge_count];
-	
+
 	for(index_tt i=0;i<vert_count+1;++i)
 		bw_beg_pos[i]=(index_tt)tmp_beg_pos[i];
 

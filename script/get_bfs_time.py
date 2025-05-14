@@ -1,9 +1,9 @@
+import csv
 import os
 import sys
-import csv
+
 
 def get_line_list(input_file):
-
     line_list = []
 
     with open(input_file, "r") as csvfile:
@@ -12,19 +12,18 @@ def get_line_list(input_file):
 
     return line_list
 
-def write_list_to_csv(result_list, output_file):
 
+def write_list_to_csv(result_list, output_file):
     with open(output_file, "w") as csv_file:
-        csv_write = csv.writer(csv_file, delimiter = ',')
+        csv_write = csv.writer(csv_file, delimiter=',')
         for line in result_list:
             csv_write.writerow(line)
 
 
 def get_bfs_time(input_folder):
-
     file_list = os.listdir(input_folder)
     result_list = []
-#    print(file_list)
+    #    print(file_list)
     for file_one in file_list:
         if file_one == "bfs_time.csv":
             continue
@@ -32,7 +31,7 @@ def get_bfs_time(input_folder):
         time_bfs = [0.0] * 6
 
         frequency_list = [0] * 6
-#        print time_bfs
+        #        print time_bfs
 
         line_list = get_line_list(input_file)
 
@@ -59,12 +58,15 @@ def get_bfs_time(input_folder):
         result_list.append([file_one[:-4]] + time_bfs)
 
     return result_list
+
+
 #    print result_list
 
 if __name__ == "__main__":
 
     if len(sys.argv) != 2:
-        print "Usage: python get_bfs_time.py <input_folder>"
+        print
+        "Usage: python get_bfs_time.py <input_folder>"
         exit(-1)
     input_folder = sys.argv[1]
     print("Output file bfs_time.csv will be stored under ", input_folder)

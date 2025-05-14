@@ -5,7 +5,6 @@
 #include "util.h"
 #include "wtime.h"
 
-//function 1: trim size_2 from scanning the whole graph
 inline void trim_2_from_graph(
         index_t *scc_id,
         index_t *fw_beg_pos,
@@ -20,7 +19,7 @@ inline void trim_2_from_graph(
     {
         if(scc_id[vert_id] == 0)
         {
-            
+
             index_t my_beg = fw_beg_pos[vert_id];
             index_t my_end = fw_beg_pos[vert_id+1];
             index_t out_degree = 0;
@@ -42,10 +41,8 @@ inline void trim_2_from_graph(
                             break;
                         }
                 }
-            } 
-            ///add trim size-1
+            }
 
-            //out_degree is 1, check the out_neighbor
             if(out_degree == 1)
             {
                 my_beg = fw_beg_pos[out_neighbor];
@@ -71,7 +68,7 @@ inline void trim_2_from_graph(
                             }
                     }
                 }
-                ///add trim size-1: neighbor_out_degree == 0
+
                 if(neighbor_out_degree == 1 && neighbor_out_neighbor == vert_id)
                 {
                     scc_id[vert_id] = -2;
@@ -79,7 +76,7 @@ inline void trim_2_from_graph(
                     continue;
                 }
             }
-            
+
             index_t in_degree = 0;
             index_t in_neighbor = 0;
             my_beg = bw_beg_pos[vert_id];
@@ -91,7 +88,7 @@ inline void trim_2_from_graph(
                 {
                     if(in_degree == 0)
                     {
-                        in_degree = 1; 
+                        in_degree = 1;
                         in_neighbor = w;
                     }
                     else
@@ -102,8 +99,7 @@ inline void trim_2_from_graph(
                         }
                 }
             }
-            /// add trim size-1
-            //in_degree is 1, check the in_neighbor
+
             if(in_degree == 1)
             {
                 my_beg = bw_beg_pos[in_neighbor];
@@ -111,7 +107,7 @@ inline void trim_2_from_graph(
 
                 index_t neighbor_in_degree = 0;
                 index_t neighbor_in_neighbor = 0;
-                
+
                 for(; my_beg < my_end; ++my_beg)
                 {
                     index_t w = bw_csr[my_beg];
@@ -130,7 +126,7 @@ inline void trim_2_from_graph(
                             }
                     }
                 }
-                ///add trim size-1: neighbor_out_degree == 0
+
                 if(neighbor_in_degree == 1 && neighbor_in_neighbor == vert_id)
                 {
                     scc_id[vert_id] = -2;
@@ -139,10 +135,10 @@ inline void trim_2_from_graph(
                 }
             }
         }
-                    
+
     }
 }
-//function 2: trim 2 from last frontier queue
+
 inline void trim_2_from_fq(
         index_t *scc_id,
         index_t *fw_beg_pos,
@@ -157,9 +153,7 @@ inline void trim_2_from_fq(
     for(vertex_t fq_vert_id = vert_beg; fq_vert_id < vert_end; ++fq_vert_id)
     {
         vertex_t vert_id = small_queue[fq_vert_id];
-//        if(scc_id[vert_id] == 0)
-//        {
-            
+
             index_t my_beg = fw_beg_pos[vert_id];
             index_t my_end = fw_beg_pos[vert_id+1];
             index_t out_degree = 0;
@@ -181,10 +175,8 @@ inline void trim_2_from_fq(
                             break;
                         }
                 }
-            } 
-            ///add trim size-1
+            }
 
-            //out_degree is 1, check the out_neighbor
             if(out_degree == 1)
             {
                 my_beg = fw_beg_pos[out_neighbor];
@@ -210,7 +202,7 @@ inline void trim_2_from_fq(
                             }
                     }
                 }
-                ///add trim size-1: neighbor_out_degree == 0
+
                 if(neighbor_out_degree == 1 && neighbor_out_neighbor == vert_id)
                 {
                     scc_id[vert_id] = -2;
@@ -218,7 +210,7 @@ inline void trim_2_from_fq(
                     continue;
                 }
             }
-            
+
             index_t in_degree = 0;
             index_t in_neighbor = 0;
             my_beg = bw_beg_pos[vert_id];
@@ -230,7 +222,7 @@ inline void trim_2_from_fq(
                 {
                     if(in_degree == 0)
                     {
-                        in_degree = 1; 
+                        in_degree = 1;
                         in_neighbor = w;
                     }
                     else
@@ -241,8 +233,7 @@ inline void trim_2_from_fq(
                         }
                 }
             }
-            /// add trim size-1
-            //in_degree is 1, check the in_neighbor
+
             if(in_degree == 1)
             {
                 my_beg = bw_beg_pos[in_neighbor];
@@ -250,7 +241,7 @@ inline void trim_2_from_fq(
 
                 index_t neighbor_in_degree = 0;
                 index_t neighbor_in_neighbor = 0;
-                
+
                 for(; my_beg < my_end; ++my_beg)
                 {
                     index_t w = bw_csr[my_beg];
@@ -269,7 +260,7 @@ inline void trim_2_from_fq(
                             }
                     }
                 }
-                ///add trim size-1: neighbor_out_degree == 0
+
                 if(neighbor_in_degree == 1 && neighbor_in_neighbor == vert_id)
                 {
                     scc_id[vert_id] = -2;
@@ -277,13 +268,10 @@ inline void trim_2_from_fq(
                     continue;
                 }
             }
-//        }
-                    
+
     }
 }
 
-//function 3: trim size_3_1 from scanning the graph
-//size-3: type_1, A --> B --> C --> A
 inline void trim_3_1_from_graph(
         index_t *scc_id,
         index_t *fw_beg_pos,
@@ -302,14 +290,14 @@ inline void trim_3_1_from_graph(
             index_t my_end = fw_beg_pos[vert_id+1];
             index_t out_degree = 0;
             index_t out_neighbor = 0;
-            
+
             for(; my_beg < my_end; ++my_beg)
             {
                 index_t w = fw_csr[my_beg];
-                ///self-cycle
+
                 if(scc_id[w] == 0 && vert_id != w)
                 {
-                    ///redundant edge
+
                     if(out_degree == 0)
                     {
                         out_degree = 1;
@@ -324,7 +312,6 @@ inline void trim_3_1_from_graph(
                 }
             }
 
-            //A out_degree is 1, check the out_neighbor
             if(out_degree == 1)
             {
                 my_beg = fw_beg_pos[out_neighbor];
@@ -350,10 +337,10 @@ inline void trim_3_1_from_graph(
                             }
                     }
                 }
-                ///add trim size-1: neighbor_out_degree == 0
+
                 if(B_out_degree == 1)
                 {
-                    //B out_degree is 1, check C
+
                     my_beg = fw_beg_pos[B_out_neighbor];
                     my_end = fw_beg_pos[B_out_neighbor + 1];
                     index_t C_out_degree = 0;
@@ -382,12 +369,11 @@ inline void trim_3_1_from_graph(
                         scc_id[vert_id] = -3;
                         scc_id[out_neighbor] = -3;
                         scc_id[B_out_neighbor] = -3;
-//                            printf("Out_A = %d, B = %d, C = %d\n", vert_id, out_neighbor, B_out_neighbor);
-//                        size_3_type_1++;
+
                     }
                 }
             }
-            
+
             index_t in_degree = 0;
             index_t in_neighbor = 0;
             my_beg = bw_beg_pos[vert_id];
@@ -410,8 +396,7 @@ inline void trim_3_1_from_graph(
                         }
                 }
             }
-            /// add trim size-1
-            //in_degree is 1, check the in_neighbor
+
             if(in_degree == 1 && in_neighbor != vert_id)
             {
                 my_beg = bw_beg_pos[in_neighbor];
@@ -419,7 +404,7 @@ inline void trim_3_1_from_graph(
 
                 index_t B_in_degree = 0;
                 index_t B_in_neighbor = 0;
-                
+
                 for(; my_beg < my_end; ++my_beg)
                 {
                     index_t w = bw_csr[my_beg];
@@ -438,10 +423,10 @@ inline void trim_3_1_from_graph(
                             }
                     }
                 }
-                ///add trim size-1: neighbor_in_degree == 0
+
                 if(B_in_degree == 1)
                 {
-                    //B in_degree is 1, check C
+
                     my_beg = bw_beg_pos[B_in_neighbor];
                     my_end = bw_beg_pos[B_in_neighbor + 1];
                     index_t C_in_degree = 0;
@@ -470,12 +455,12 @@ inline void trim_3_1_from_graph(
                         scc_id[vert_id] = -3;
                         scc_id[in_neighbor] = -3;
                         scc_id[B_in_neighbor] = -3;
-//                        size_3_type_1++;
+
                     }
                 }
             }
         }
-                    
+
     }
 }
 
@@ -499,14 +484,14 @@ inline void trim_3_1_from_fq(
             index_t my_end = fw_beg_pos[vert_id+1];
             index_t out_degree = 0;
             index_t out_neighbor = 0;
-            
+
             for(; my_beg < my_end; ++my_beg)
             {
                 index_t w = fw_csr[my_beg];
-                ///self-cycle
+
                 if(scc_id[w] == 0 && vert_id != w)
                 {
-                    ///redundant edge
+
                     if(out_degree == 0)
                     {
                         out_degree = 1;
@@ -521,7 +506,6 @@ inline void trim_3_1_from_fq(
                 }
             }
 
-            //A out_degree is 1, check the out_neighbor
             if(out_degree == 1)
             {
                 my_beg = fw_beg_pos[out_neighbor];
@@ -547,10 +531,10 @@ inline void trim_3_1_from_fq(
                             }
                     }
                 }
-                ///add trim size-1: neighbor_out_degree == 0
+
                 if(B_out_degree == 1)
                 {
-                    //B out_degree is 1, check C
+
                     my_beg = fw_beg_pos[B_out_neighbor];
                     my_end = fw_beg_pos[B_out_neighbor + 1];
                     index_t C_out_degree = 0;
@@ -579,12 +563,11 @@ inline void trim_3_1_from_fq(
                         scc_id[vert_id] = -3;
                         scc_id[out_neighbor] = -3;
                         scc_id[B_out_neighbor] = -3;
-//                            printf("Out_A = %d, B = %d, C = %d\n", vert_id, out_neighbor, B_out_neighbor);
-//                        size_3_type_1++;
+
                     }
                 }
             }
-            
+
             index_t in_degree = 0;
             index_t in_neighbor = 0;
             my_beg = bw_beg_pos[vert_id];
@@ -607,8 +590,7 @@ inline void trim_3_1_from_fq(
                         }
                 }
             }
-            /// add trim size-1
-            //in_degree is 1, check the in_neighbor
+
             if(in_degree == 1 && in_neighbor != vert_id)
             {
                 my_beg = bw_beg_pos[in_neighbor];
@@ -616,7 +598,7 @@ inline void trim_3_1_from_fq(
 
                 index_t B_in_degree = 0;
                 index_t B_in_neighbor = 0;
-                
+
                 for(; my_beg < my_end; ++my_beg)
                 {
                     index_t w = bw_csr[my_beg];
@@ -635,10 +617,10 @@ inline void trim_3_1_from_fq(
                             }
                     }
                 }
-                ///add trim size-1: neighbor_in_degree == 0
+
                 if(B_in_degree == 1)
                 {
-                    //B in_degree is 1, check C
+
                     my_beg = bw_beg_pos[B_in_neighbor];
                     my_end = bw_beg_pos[B_in_neighbor + 1];
                     index_t C_in_degree = 0;
@@ -667,18 +649,15 @@ inline void trim_3_1_from_fq(
                         scc_id[vert_id] = -3;
                         scc_id[in_neighbor] = -3;
                         scc_id[B_in_neighbor] = -3;
-//                        size_3_type_1++;
+
                     }
                 }
             }
         }
-                    
+
     }
 }
 
-//function 4: trim size_3_2 from scanning the graph
-//size-3: type_1, A --> B --> A --> C --> A 
-//starting from hub vertex A
 inline void trim_3_2_from_graph(
         index_t *scc_id,
         index_t *fw_beg_pos,
@@ -698,7 +677,7 @@ inline void trim_3_2_from_graph(
             index_t out_degree = 0;
             index_t out_neighbor_B = -1;
             index_t out_neighbor_C = -1;
-            
+
             for(; my_beg < my_end; ++my_beg)
             {
                 index_t w = fw_csr[my_beg];
@@ -725,7 +704,6 @@ inline void trim_3_2_from_graph(
             }
             if(out_degree == 2)
             {
-                //check whether B/C can point to A
 
                 my_beg = fw_beg_pos[out_neighbor_B];
                 my_end = fw_beg_pos[out_neighbor_B + 1];
@@ -778,7 +756,7 @@ inline void trim_3_2_from_graph(
                         scc_id[vert_id] = -4;
                         scc_id[out_neighbor_B] = -4;
                         scc_id[out_neighbor_C] = -4;
-//                        size_3_type_2 ++;
+
                     }
                 }
             }
@@ -788,7 +766,7 @@ inline void trim_3_2_from_graph(
             index_t in_degree = 0;
             index_t in_neighbor_B = -1;
             index_t in_neighbor_C = -1;
-            
+
             for(; my_beg < my_end; ++my_beg)
             {
                 index_t w = bw_csr[my_beg];
@@ -815,7 +793,6 @@ inline void trim_3_2_from_graph(
             }
             if(in_degree == 2)
             {
-                //check whether B/C can point to A
 
                 my_beg = bw_beg_pos[in_neighbor_B];
                 my_end = bw_beg_pos[in_neighbor_B + 1];
@@ -868,11 +845,10 @@ inline void trim_3_2_from_graph(
                         scc_id[vert_id] = -4;
                         scc_id[in_neighbor_B] = -4;
                         scc_id[in_neighbor_C] = -4;
-//                        size_3_type_2 ++;
+
                     }
                 }
             }
-
 
         }
     }
@@ -899,7 +875,7 @@ inline void trim_3_2_from_fq(
             index_t out_degree = 0;
             index_t out_neighbor_B = -1;
             index_t out_neighbor_C = -1;
-            
+
             for(; my_beg < my_end; ++my_beg)
             {
                 index_t w = fw_csr[my_beg];
@@ -926,7 +902,6 @@ inline void trim_3_2_from_fq(
             }
             if(out_degree == 2)
             {
-                //check whether B/C can point to A
 
                 my_beg = fw_beg_pos[out_neighbor_B];
                 my_end = fw_beg_pos[out_neighbor_B + 1];
@@ -979,7 +954,7 @@ inline void trim_3_2_from_fq(
                         scc_id[vert_id] = -4;
                         scc_id[out_neighbor_B] = -4;
                         scc_id[out_neighbor_C] = -4;
-//                        size_3_type_2 ++;
+
                     }
                 }
             }
@@ -989,7 +964,7 @@ inline void trim_3_2_from_fq(
             index_t in_degree = 0;
             index_t in_neighbor_B = -1;
             index_t in_neighbor_C = -1;
-            
+
             for(; my_beg < my_end; ++my_beg)
             {
                 index_t w = bw_csr[my_beg];
@@ -1016,7 +991,6 @@ inline void trim_3_2_from_fq(
             }
             if(in_degree == 2)
             {
-                //check whether B/C can point to A
 
                 my_beg = bw_beg_pos[in_neighbor_B];
                 my_end = bw_beg_pos[in_neighbor_B + 1];
@@ -1069,11 +1043,10 @@ inline void trim_3_2_from_fq(
                         scc_id[vert_id] = -4;
                         scc_id[in_neighbor_B] = -4;
                         scc_id[in_neighbor_C] = -4;
-//                        size_3_type_2 ++;
+
                     }
                 }
             }
-
 
         }
     }

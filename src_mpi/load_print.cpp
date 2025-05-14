@@ -4,9 +4,9 @@
 #include "wtime.h"
 
 graph *graph_load(
-        const char *fw_beg_file, 
-        const char *fw_csr_file, 
-        const char *bw_beg_file, 
+        const char *fw_beg_file,
+        const char *fw_csr_file,
+        const char *bw_beg_file,
         const char *bw_csr_file,
         double *avg_time
         )
@@ -64,8 +64,7 @@ void print_time_result(
         double *avg_time
         )
 {
-    //0 trim, 1 largest SCC, 2 small SCC, 3 total time
-    //4 trim_size_1, 5 trim_size_2, 6 pivot_selection, 7 fw_bfs, 8 bw_bfs, 9 color propagation, 10 color identify, 11 color_init
+
     if(run_times > 0)
     {
         for(index_t i=0; i<15; ++i)
@@ -73,7 +72,7 @@ void print_time_result(
         printf("\nAverage Time Consumption for Running %d Times (ms)\n", run_times);
         printf("Trim, %.3lf\n", avg_time[0]);
         printf("Elephant SCC, %.3lf\n", avg_time[1]);
-//        printf("WCC, %.3lf\n", avg_time[12]);
+
         printf("Mice SCC, %.3lf\n", avg_time[2]);
         printf("Total time, %.3lf\n", avg_time[3]);
 
@@ -84,9 +83,9 @@ void print_time_result(
         printf("BW BFS, %.3lf\n", avg_time[8]);
         printf("Trim size_2, %.3lf\n", avg_time[5]);
         printf("Trim size_3, %.3lf\n", avg_time[13]);
-//        printf("GFQ, %.3lf\n", avg_time[14]);
+
         printf("Wcc, %.3lf\n", avg_time[9]);
         printf("Mice fw-bw, %.3lf\n", avg_time[10]);
-       // printf("Color init, %.3lf\n", avg_time[11]);
+
     }
 }

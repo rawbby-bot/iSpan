@@ -32,8 +32,6 @@ void print_time_result(
         double *avg_time
         );
 
-    
-//step 2.1: pivot selection
 inline index_t pivot_selection(
         index_t *scc_id,
         index_t *fw_beg_pos,
@@ -57,7 +55,7 @@ inline index_t pivot_selection(
             index_t out_degree = fw_beg_pos[vert_id+1] - fw_beg_pos[vert_id];
             index_t in_degree = bw_beg_pos[vert_id+1] - bw_beg_pos[vert_id];
             index_t degree_mul = out_degree * in_degree;
-            
+
             if(degree_mul > max_degree_thread)
             {
                 max_degree_thread = degree_mul;
@@ -69,10 +67,10 @@ inline index_t pivot_selection(
     max_degree_list[tid] = max_degree_thread;
 
     #pragma omp barrier
-    
+
     index_t max_pivot = 0;
     index_t max_degree = 0;
-    
+
     for(index_t i=0; i<thread_count; ++i)
     {
         if(max_degree_list[i] > max_degree)
@@ -102,9 +100,7 @@ inline index_t pivot_selection_from_fq(
         index_t tid,
         index_t thread_count,
         index_t *small_queue
-//        ,
-//        index_t *mul_degree,
-//        index_t *degree_prop
+
         )
 {
     index_t max_pivot_thread = 0;
@@ -112,27 +108,24 @@ inline index_t pivot_selection_from_fq(
     for(vertex_t fq_vert_id = vert_beg; fq_vert_id < vert_end; ++fq_vert_id)
     {
         vertex_t vert_id = small_queue[fq_vert_id];
-//        if(scc_id[vert_id] == 0)
-//        {
+
             index_t degree_mul = (fw_beg_pos[vert_id+1] - fw_beg_pos[vert_id]) * (bw_beg_pos[vert_id+1] - bw_beg_pos[vert_id]);
-            
-//            mul_degree[vert_id] = degree_mul + fw_beg_pos[vert_id+1] - fw_beg_pos[vert_id];
-//            degree_prop[vert_id] = mul_degree[vert_id];
+
             if(degree_mul > max_degree_thread)
             {
                 max_degree_thread = degree_mul;
                 max_pivot_thread = vert_id;
             }
-//        }
+
     }
     max_pivot_list[tid] = max_pivot_thread;
     max_degree_list[tid] = max_degree_thread;
 
     #pragma omp barrier
-    
+
     index_t max_pivot = 0;
     index_t max_degree = 0;
-    
+
     for(index_t i=0; i<thread_count; ++i)
     {
         if(max_degree_list[i] > max_degree)

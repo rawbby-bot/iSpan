@@ -27,6 +27,7 @@ if (BUILD_MPI)
 endif ()
 
 # add subdirectories
+add_subdirectory(graph_converter)
 add_subdirectory(src)
 if (BUILD_MPI)
     add_subdirectory(src_mpi)

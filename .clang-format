@@ -1,0 +1,7 @@
+BasedOnStyle: Mozilla
+TabWidth: 2
+UseTab: Never
+ColumnLimit: 0
+MaxEmptyLinesToKeep: 1
+AllowShortFunctionsOnASingleLine: Empty
+AllowShortLambdasOnASingleLine: Empty

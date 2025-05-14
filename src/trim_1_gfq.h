@@ -45,9 +45,9 @@ inline void trim_1_first_gfq(
         index_t tid
         )
 {
-    //step 1: get thread_bin_size during trim size-1
+
     index_t thread_bin_size = 0;
-    
+
     for(vertex_t vert_id = vert_beg; vert_id < vert_end; ++vert_id)
     {
         if(fw_beg_pos[vert_id+1] - fw_beg_pos[vert_id] == 0)
@@ -66,22 +66,20 @@ inline void trim_1_first_gfq(
                 thread_bin_size ++;
             }
     }
-    
+
     thread_bin[tid] = thread_bin_size;
-    
-    //step 2: get prefix_sum for each thread
+
     prefix_sum[tid] = 0;
     #pragma omp barrier
     for(index_t i=0; i<tid; ++i)
     {
         prefix_sum[tid] += thread_bin[i];
     }
-    
+
     #pragma omp barrier
 
-    //step 3: write the vertices into fq
     vertex_t start_pos = prefix_sum[tid];
-    
+
     for(vertex_t vert_id = vert_beg; vert_id < vert_end; ++vert_id)
     {
         if(scc_id[vert_id] == 0)
@@ -91,7 +89,6 @@ inline void trim_1_first_gfq(
     }
 }
 
-//step 1.2: trim size_1
 inline void trim_1_normal(
         index_t *scc_id,
         index_t *fw_beg_pos,
@@ -198,7 +195,6 @@ inline void trim_1_from_fq(
     }
 }
 
-// return the number of trimmed vertices
 inline void trim_1_normal_only_size(
         index_t *scc_id,
         index_t *fw_beg_pos,
@@ -213,7 +209,7 @@ inline void trim_1_normal_only_size(
         index_t tid
         )
 {
-    //step 1: get thread_bin_size during trim size-1
+
     index_t thread_bin_size = 0;
     for(vertex_t vert_id = vert_beg; vert_id < vert_end; ++vert_id)
     {
@@ -255,13 +251,12 @@ inline void trim_1_normal_only_size(
                 thread_bin_size ++;
                 continue;
             }
-            
+
         }
     }
-    
+
     thread_bin[tid] = thread_bin_size;
-    
-    //step 2: get prefix_sum for each thread
+
     prefix_sum[tid] = 0;
     #pragma omp barrier
     for(index_t i=0; i<tid; ++i)
@@ -269,18 +264,8 @@ inline void trim_1_normal_only_size(
         prefix_sum[tid] += thread_bin[i];
     }
 
-//    //step 3: write the vertices into fq
-//    vertex_t start_pos = prefix_sum[tid];
-//    for(vertex_t vert_id = vert_beg; vert_id < vert_end; ++vert_id)
-//    {
-//        if(scc_id[vert_id] == 0)
-//        {
-//            frontier_queue[start_pos++] = vert_id;
-//        }
-//    }
 }
 
-//step 1.2: trim size_1
 inline void trim_1_normal_gfq(
         index_t *scc_id,
         index_t *fw_beg_pos,
@@ -296,7 +281,7 @@ inline void trim_1_normal_gfq(
         index_t tid
         )
 {
-    //step 1: get thread_bin_size during trim size-1
+
     index_t thread_bin_size = 0;
     for(vertex_t vert_id = vert_beg; vert_id < vert_end; ++vert_id)
     {
@@ -336,14 +321,13 @@ inline void trim_1_normal_gfq(
                 scc_id[vert_id] = -1;
                 continue;
             }
-            
+
             thread_bin_size ++;
         }
     }
-    
+
     thread_bin[tid] = thread_bin_size;
-    
-    //step 2: get prefix_sum for each thread
+
     prefix_sum[tid] = 0;
     #pragma omp barrier
     for(index_t i=0; i<tid; ++i)
@@ -351,7 +335,6 @@ inline void trim_1_normal_gfq(
         prefix_sum[tid] += thread_bin[i];
     }
 
-    //step 3: write the vertices into fq
     vertex_t start_pos = prefix_sum[tid];
     for(vertex_t vert_id = vert_beg; vert_id < vert_end; ++vert_id)
     {
@@ -378,7 +361,7 @@ inline void trim_1_from_fq_gfq(
         index_t *temp_queue
         )
 {
-    //step 1: get thread_bin_size
+
     index_t thread_bin_size = 0;
     for(vertex_t fq_vert_id = vert_beg; fq_vert_id < vert_end; ++fq_vert_id)
     {
@@ -423,8 +406,7 @@ inline void trim_1_from_fq_gfq(
         }
     }
     thread_bin[tid] = thread_bin_size;
-    
-    //step 2: get prefix_sum for each thread
+
     prefix_sum[tid] = 0;
     #pragma omp barrier
     for(index_t i=0; i<tid; ++i)
@@ -432,7 +414,6 @@ inline void trim_1_from_fq_gfq(
         prefix_sum[tid] += thread_bin[i];
     }
 
-    //step 3: write the vertices into fq
     vertex_t start_pos = prefix_sum[tid];
     for(vertex_t fq_vert_id = vert_beg; fq_vert_id < vert_end; ++fq_vert_id)
     {
@@ -450,7 +431,7 @@ inline void trim_1_from_fq_gfq(
             printf("In normal trim, thread bin size, %d\n", prefix_sum[55]);
         }
     }
-    //step 4: write back to small_queue
+
     for(index_t i=prefix_sum[tid]; i<prefix_sum[tid]+thread_bin[tid]; ++i)
     {
         frontier_queue[i] = temp_queue[i];
@@ -465,8 +446,7 @@ inline static void get_queue(
         vertex_t *temp_queue
         )
 {
-    
-    //step 2: get prefix_sum for each thread
+
     prefix_sum[tid] = 0;
     #pragma omp barrier
     for(index_t i=0; i<tid; ++i)
@@ -474,7 +454,7 @@ inline static void get_queue(
         prefix_sum[tid] += thread_bin[i];
     }
     #pragma omp barrier
-    //step 3: write the vertices into fq
+
     vertex_t start_pos = prefix_sum[tid];
     for(vertex_t vert_id = start_pos; vert_id < start_pos + thread_bin[tid]; ++vert_id)
     {
@@ -482,7 +462,6 @@ inline static void get_queue(
     }
 }
 
-// Using prefix sum to generate frontier queue 
 inline static void generate_frontier_queue(
         const index_t vert_count,
         index_t *scc_id,
@@ -495,7 +474,7 @@ inline static void generate_frontier_queue(
         index_t tid
         )
 {
-    //step 1: get thread_bin_size
+
     index_t thread_bin_size = 0;
     for(vertex_t vert_id = vert_beg; vert_id < vert_end; ++vert_id)
     {
@@ -505,8 +484,7 @@ inline static void generate_frontier_queue(
         }
     }
     thread_bin[tid] = thread_bin_size;
-    
-    //step 2: get prefix_sum for each thread
+
     prefix_sum[tid] = 0;
     #pragma omp barrier
     for(index_t i=0; i<tid; ++i)
@@ -514,7 +492,6 @@ inline static void generate_frontier_queue(
         prefix_sum[tid] += thread_bin[i];
     }
 
-    //step 3: write the vertices into fq
     vertex_t start_pos = prefix_sum[tid];
     for(vertex_t vert_id = vert_beg; vert_id < vert_end; ++vert_id)
     {
@@ -523,8 +500,6 @@ inline static void generate_frontier_queue(
             frontier_queue[start_pos++] = vert_id;
         }
     }
-//    #pragma omp barrier
-//    return prefix_sum[thread_count - 1] + thread_bin[thread_count - 1];
 
 }
 
@@ -541,7 +516,7 @@ inline static void gfq_from_queue(
         index_t *temp_queue
         )
 {
-    //step 1: get thread_bin_size
+
     index_t thread_bin_size = 0;
     for(vertex_t fq_vert_id = vert_beg; fq_vert_id < vert_end; ++fq_vert_id)
     {
@@ -552,8 +527,7 @@ inline static void gfq_from_queue(
         }
     }
     thread_bin[tid] = thread_bin_size;
-    
-    //step 2: get prefix_sum for each thread
+
     prefix_sum[tid] = 0;
     #pragma omp barrier
     for(index_t i=0; i<tid; ++i)
@@ -561,7 +535,6 @@ inline static void gfq_from_queue(
         prefix_sum[tid] += thread_bin[i];
     }
 
-    //step 3: write the vertices into fq
     vertex_t start_pos = prefix_sum[tid];
     for(vertex_t fq_vert_id = vert_beg; fq_vert_id < vert_end; ++fq_vert_id)
     {
@@ -572,7 +545,7 @@ inline static void gfq_from_queue(
         }
     }
     #pragma omp barrier
-    //step 4: write back to small_queue
+
     for(index_t i=prefix_sum[tid]; i<prefix_sum[tid]+thread_bin[tid]; ++i)
     {
         small_queue[i] = temp_queue[i];
@@ -592,7 +565,7 @@ inline static void bw_gfq_from_fw(
         index_t *temp_queue
         )
 {
-    //step 1: get thread_bin_size
+
     index_t thread_bin_size = 0;
     for(vertex_t fq_vert_id = vert_beg; fq_vert_id < vert_end; ++fq_vert_id)
     {
@@ -603,8 +576,7 @@ inline static void bw_gfq_from_fw(
         }
     }
     thread_bin[tid] = thread_bin_size;
-    
-    //step 2: get prefix_sum for each thread
+
     prefix_sum[tid] = 0;
     #pragma omp barrier
     for(index_t i=0; i<tid; ++i)
@@ -613,7 +585,7 @@ inline static void bw_gfq_from_fw(
     }
 
     #pragma omp barrier
-    //step 3: write the vertices into fq
+
     vertex_t start_pos = prefix_sum[tid];
     for(vertex_t fq_vert_id = vert_beg; fq_vert_id < vert_end; ++fq_vert_id)
     {
@@ -623,12 +595,6 @@ inline static void bw_gfq_from_fw(
             temp_queue[start_pos++] = vert_id;
         }
     }
-//    #pragma omp barrier
-//    //step 4: write back to small_queue
-//    for(index_t i=prefix_sum[tid]; i<prefix_sum[tid]+thread_bin[tid]; ++i)
-//    {
-//        small_queue[i] = temp_queue[i];
-//    }
 
 }
 
@@ -644,7 +610,7 @@ inline static void gfq_fw_bw_from_queue(
         index_t *temp_queue
         )
 {
-    //step 1: get thread_bin_size
+
     index_t thread_bin_size = 0;
     for(vertex_t fq_vert_id = vert_beg; fq_vert_id < vert_end; ++fq_vert_id)
     {
@@ -655,8 +621,7 @@ inline static void gfq_fw_bw_from_queue(
         }
     }
     thread_bin[tid] = thread_bin_size;
-    
-    //step 2: get prefix_sum for each thread
+
     prefix_sum[tid] = 0;
     #pragma omp barrier
     for(index_t i=0; i<tid; ++i)
@@ -664,7 +629,6 @@ inline static void gfq_fw_bw_from_queue(
         prefix_sum[tid] += thread_bin[i];
     }
 
-    //step 3: write the vertices into fq
     vertex_t start_pos = prefix_sum[tid];
     for(vertex_t fq_vert_id = vert_beg; fq_vert_id < vert_end; ++fq_vert_id)
     {
@@ -677,5 +641,4 @@ inline static void gfq_fw_bw_from_queue(
 }
 
 #endif
-
 
