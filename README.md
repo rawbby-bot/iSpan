@@ -47,32 +47,26 @@ More tutorials will be released soon.
 The following software are required, but the versions do not have to be the same. The versions listed are used in our
 experiments.
 
-```javascript
+```text
 GCC-4.8.5
 OpenMP-3.1
 Open MPI-2.1.1
-Makefile
+CMake 3.15
 ```
 
 ## Install and Run
 
-Get into the source code directory, "src" for shared-memory, "src_mpi" for distributed-memory, then compile the source
-code with Makefile,
-
-```python
-cd src/
-make
+Building:
+```shell
+mkdir -p cmake-build-release
+cd cmake-build-release
+cmake -S .. -B . -DBUILD_TESTING=ON -DBUILD_MPI=ON -DCMAKE_BUILD_TYPE=Release
+cmake --build .
+ctest
 ```
 
-If the prerequisites are correct, the make process should be good. You will get the executable file "ispan". Run "ispan"
-to see the parameters and use the correct ones. For simplicity, you can change the "bash_one.sh" file and run it.
-
-```python
-./bash_one.sh
-```
-
-For the distributed-memory version, we used the clusters of GWU Colonial One, and MGHPCC. There is a script for running
-jobs on GWU Colonial One, named "run_batch.sh". You should write your own script for running on a different cluster.
+If the prerequisites are correct, the make process should be good. You will get the executable file "iSpan". Run "<build-dir>/bin/iSpan"
+to see the parameters and use the correct ones.
 
 ## Graph format
 
@@ -87,11 +81,15 @@ Hang Liu, email: hang_liu@uml.edu
 
 H. Howie Huang, email: howie@gwu.edu
 
+## Contributors
+
+Robert Fritsch: info@robert-fritsch.de
+
 ## Reference
 
 If you use iSpan in your project, please cite the following paper.
 
-```python
+```text
 @inproceedings{ji2018s,
     title={iSpan: parallel identification of strongly connected components with spanning trees},
     author={Ji, Yuede and Liu, Hang and Huang, H Howie},
