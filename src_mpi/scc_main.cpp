@@ -43,7 +43,7 @@ main(int args, char** argv)
   index_t i = 0;
 
   while (i++ < run_times) {
-    printf("\nRuntime: %d\n", i);
+    printf("\nRuntime: %lu\n", i);
     scc_detection(g,
                   alpha,
                   beta,

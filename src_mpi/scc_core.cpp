@@ -39,7 +39,7 @@ scc_detection(
   const long_t edge_count = g->edge_count;
   const double avg_degree = edge_count * 1.0 / vert_count;
   if (DEBUG)
-    printf("vert_count = %d, edge_count = %ld, avg_degree = %.3lf\n", vert_count, edge_count, avg_degree);
+    printf("vert_count = %lu, edge_count = %ld, avg_degree = %.3lf\n", vert_count, edge_count, avg_degree);
 
   long_t* fw_beg_pos = g->fw_beg_pos;
   vertex_t* fw_csr = g->fw_csr;
@@ -48,7 +48,7 @@ scc_detection(
 
   if (VERBOSE) {
     for (int i = fw_beg_pos[vert_count]; i < fw_beg_pos[vert_count + 1]; ++i)
-      printf("%d\n", fw_csr[i]);
+      printf("%lu\n", fw_csr[i]);
   }
 
   index_t* max_pivot_list = new index_t[thread_count];
@@ -346,7 +346,7 @@ scc_detection(
                   wcc_fq_size);
 
       if (tid == 0) {
-        printf("color time (ms), %lf, wcc_fq, %d, time (ms), %lf\n", time_wcc * 1000, wcc_fq_size, 1000 * (wtime() - time));
+        printf("color time (ms), %lf, wcc_fq, %lu, time (ms), %lf\n", time_wcc * 1000, wcc_fq_size, 1000 * (wtime() - time));
       }
 
       mice_fw_bw(color,
@@ -372,7 +372,7 @@ scc_detection(
                     MPI_COMM_WORLD);
       time_comm = wtime() - temp_time;
 
-      printf("%d,final comm time,%.3lf\n", tid, time_comm * 1000);
+      printf("%lu,final comm time,%.3lf\n", tid, time_comm * 1000);
 
       for (int i = 0; i < sub_v_count; ++i) {
         vertex_t actual_v = small_queue[i];

@@ -47,7 +47,7 @@ get_scc_result(
       mp[scc_id[i]]++;
     }
   }
-  printf("\nResult:\nlargest, %d\ntrimmed size_1, %d\ntrimmed size_2, %d\ntrimmed size_3, %d\nothers, %d\ntotal, %d\n", largest, size_1, size_2 / 2, size_3_type_1 / 3 + size_3_type_2 / 3, mp.size(), (1 + size_1 + size_2 / 2 + size_3_type_1 / 3 + size_3_type_2 / 3 + mp.size()));
+  printf("\nResult:\nlargest, %lu\ntrimmed size_1, %lu\ntrimmed size_2, %lu\ntrimmed size_3, %lu\nothers, %lu\ntotal, %lu\n", largest, size_1, size_2 / 2, size_3_type_1 / 3 + size_3_type_2 / 3, mp.size(), (1 + size_1 + size_2 / 2 + size_3_type_1 / 3 + size_3_type_2 / 3 + mp.size()));
 }
 
 void
@@ -59,7 +59,7 @@ print_time_result(
   if (run_times > 0) {
     for (index_t i = 0; i < 15; ++i)
       avg_time[i] = (avg_time[i] / run_times) * 1000;
-    printf("\nAverage Time Consumption for Running %d Times (ms)\n", run_times);
+    printf("\nAverage Time Consumption for Running %lu Times (ms)\n", run_times);
     printf("Trim, %.3lf\n", avg_time[0]);
     printf("Elephant SCC, %.3lf\n", avg_time[1]);
 

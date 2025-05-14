@@ -360,7 +360,7 @@ trim_1_from_fq_gfq(
 #pragma omp barrier
   if (DEBUG) {
     if (tid == 0) {
-      printf("In normal trim, thread bin size, %d\n", prefix_sum[55]);
+      printf("In normal trim, thread bin size, %lu\n", prefix_sum[55]);
     }
   }
 

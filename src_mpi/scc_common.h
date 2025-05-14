@@ -68,7 +68,7 @@ pivot_selection(
 
   {
     if (tid == 0)
-      printf("max_pivot, %d, max_degree, %d\n", max_pivot, max_degree);
+      printf("max_pivot, %lu, max_degree, %lu\n", max_pivot, max_degree);
   }
   return max_pivot;
 }
@@ -118,7 +118,7 @@ pivot_selection_from_fq(
   }
   if (DEBUG) {
     if (tid == 0)
-      printf("max_pivot, %d, max_degree, %d\n", max_pivot, max_degree);
+      printf("max_pivot, %lu, max_degree, %lu\n", max_pivot, max_degree);
   }
   return max_pivot;
 }

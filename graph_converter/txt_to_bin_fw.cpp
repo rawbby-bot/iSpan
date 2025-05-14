@@ -4,9 +4,10 @@
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <cstdint>
 
-typedef int vertex_t;
-typedef int index_t;
+typedef std::int64_t vertex_t;
+typedef std::int64_t index_t;
 
 inline off_t
 fsize(const char* filename)

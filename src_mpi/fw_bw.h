@@ -559,7 +559,7 @@ fw_bfs_fq(
   bool is_top_down_async = false;
   if (VERBOSE) {
     if (tid == 0) {
-      printf("out_degree, %d, limit, %.3lf\n", root_out_degree, alpha * beta * fq_size);
+      printf("out_degree, %lu, limit, %.3lf\n", root_out_degree, alpha * beta * fq_size);
     }
   }
   if (root_out_degree < alpha * beta * fq_size) {
@@ -745,7 +745,7 @@ bw_bfs_fq(
   bool is_top_down_async = false;
   if (DEBUG) {
     if (tid == 0) {
-      printf("in_degree, %d, limit, %.3lf\n", root_in_degree, alpha * beta * fq_size);
+      printf("in_degree, %lu, limit, %.3lf\n", root_in_degree, alpha * beta * fq_size);
     }
   }
   if (root_in_degree < alpha * beta * fq_size) {
@@ -907,7 +907,7 @@ bw_bfs_fq(
     level++;
   }
   if (tid == 0)
-    printf("bw_level, %d\n", level);
+    printf("bw_level, %lu\n", level);
 }
 
 inline void

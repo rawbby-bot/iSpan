@@ -23,7 +23,7 @@ main(int args, char** argv)
   const int gamma = atof(argv[8]);
   const double theta = atof(argv[9]);
   const index_t run_times = atoi(argv[10]);
-  printf("Thread = %d, alpha = %d, beta = %d, gamma = %d, theta = %g, run_times = %d\n", thread_count, alpha, beta, gamma, theta, run_times);
+  printf("Thread = %lu, alpha = %d, beta = %d, gamma = %d, theta = %g, run_times = %lu\n", thread_count, alpha, beta, gamma, theta, run_times);
 
   double* avg_time = new double[15];
 
@@ -35,7 +35,7 @@ main(int args, char** argv)
   index_t i = 0;
 
   while (i++ < run_times) {
-    printf("\nRuntime: %d\n", i);
+    printf("\nRuntime: %lu\n", i);
     scc_detection(g,
                   alpha,
                   beta,

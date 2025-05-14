@@ -8,8 +8,8 @@ graph::graph(
 {
   double tm = wtime();
 
-  typedef int index_tt;
-  typedef int vertex_tt;
+  typedef std::int64_t index_tt;
+  typedef std::int64_t vertex_tt;
 
   vert_count = fsize(fw_beg_file) / sizeof(index_tt) - 1;
   edge_count = fsize(fw_csr_file) / sizeof(vertex_tt);

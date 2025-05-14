@@ -9,13 +9,13 @@
 class graph
 {
 public:
-  long_t* fw_beg_pos;
+  index_t* fw_beg_pos;
   vertex_t* fw_csr;
-  long_t* bw_beg_pos;
+  index_t* bw_beg_pos;
   vertex_t* bw_csr;
   path_t* weight;
   index_t vert_count;
-  long_t edge_count;
+  index_t edge_count;
   vertex_t* src_list;
   index_t src_count;
 

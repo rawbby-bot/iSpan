@@ -39,7 +39,7 @@ scc_detection(
   const index_t edge_count = g->edge_count;
   const double avg_degree = edge_count * 1.0 / vert_count;
   if (DEBUG)
-    printf("vert_count = %d, edge_count = %d, avg_degree = %.3lf\n", vert_count, edge_count, avg_degree);
+    printf("vert_count = %lu, edge_count = %lu, avg_degree = %.3lf\n", vert_count, edge_count, avg_degree);
 
   index_t* fw_beg_pos = g->fw_beg_pos;
   vertex_t* fw_csr = g->fw_csr;
@@ -48,7 +48,7 @@ scc_detection(
 
   if (VERBOSE) {
     for (int i = fw_beg_pos[vert_count]; i < fw_beg_pos[vert_count + 1]; ++i)
-      printf("%d\n", fw_csr[i]);
+      printf("%lu\n", fw_csr[i]);
   }
 
   index_t* scc_id = new index_t[vert_count + 1];
@@ -167,7 +167,7 @@ num_threads(thread_count)
 
     if (DEBUG) {
       if (tid == 0) {
-        printf("fq_size, %d\n", fq_size);
+        printf("fq_size, %lu\n", fq_size);
       }
     }
 
@@ -236,7 +236,7 @@ num_threads(thread_count)
 
     if (DEBUG) {
       if (tid == 0) {
-        printf("gfq bw, %.3lf, fq_size, %d\n", time_bw * 1000, temp_fq_size);
+        printf("gfq bw, %.3lf, fq_size, %lu\n", time_bw * 1000, temp_fq_size);
       }
     }
 #pragma omp barrier
@@ -302,7 +302,7 @@ num_threads(thread_count)
 
       if (DEBUG) {
         if (tid == 0) {
-          printf("trim_1, 3rd, %.3lf, trimmed vertices, %d\n", time_size_1 * 1000, prev_fq_size - fq_size);
+          printf("trim_1, 3rd, %.3lf, trimmed vertices, %lu\n", time_size_1 * 1000, prev_fq_size - fq_size);
         }
       }
       step = fq_size / thread_count;
@@ -316,7 +316,7 @@ num_threads(thread_count)
     }
     if (DEBUG) {
       if (tid == 0)
-        printf("trim-1 times before trim-2-3, %d\n", trim_times);
+        printf("trim-1 times before trim-2-3, %lu\n", trim_times);
     }
 
     if (fq_size > 0) {
@@ -328,7 +328,7 @@ num_threads(thread_count)
 
       if (DEBUG) {
         if (tid == 0)
-          printf("fq_size, %d\n", fq_size);
+          printf("fq_size, %lu\n", fq_size);
       }
       time = wtime();
 
@@ -346,7 +346,7 @@ num_threads(thread_count)
 
       if (DEBUG) {
         if (tid == 0) {
-          printf("time_size_2, %.3lf, fq_size, %d\n", time_size_2 * 1000, fq_size);
+          printf("time_size_2, %.3lf, fq_size, %lu\n", time_size_2 * 1000, fq_size);
         }
       }
 
@@ -421,7 +421,7 @@ num_threads(thread_count)
         vert_end = (tid == thread_count - 1 ? fq_size : vert_beg + step);
         if (DEBUG) {
           if (tid == 0) {
-            printf("trim_1, 4th, %.3lf, fq_size, %d, trimmed vertices, %d\n", time_size_1 * 1000, fq_size, prev_fq_size - fq_size);
+            printf("trim_1, 4th, %.3lf, fq_size, %lu, trimmed vertices, %lu\n", time_size_1 * 1000, fq_size, prev_fq_size - fq_size);
           }
         }
         if (prev_fq_size - fq_size < prev_fq_size * theta)
@@ -433,7 +433,7 @@ num_threads(thread_count)
       }
       if (DEBUG) {
         if (tid == 0) {
-          printf("trim_1 times before Color, %d, fq_size, %d\n", trim_times, fq_size);
+          printf("trim_1 times before Color, %lu, fq_size, %lu\n", trim_times, fq_size);
         }
       }
 
@@ -474,7 +474,7 @@ num_threads(thread_count)
 #pragma omp barrier
       if (DEBUG) {
         if (tid == 0) {
-          printf("wcc_fq, %d\n", wcc_fq_size);
+          printf("wcc_fq, %lu\n", wcc_fq_size);
         }
       }
 

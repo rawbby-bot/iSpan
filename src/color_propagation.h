@@ -150,7 +150,7 @@ color_propagation(
     if (final_color_change == false) {
       if (DEBUG) {
         if (tid == 0) {
-          printf("iteration_depth, %d, ", depth);
+          printf("iteration_depth, %lu, ", depth);
         }
       }
       return;
@@ -264,7 +264,7 @@ color_statistic(index_t* scc_id,
       if (color_times[vert_id] > 0)
         color_total += color_times[vert_id];
     }
-    printf("detected vertex number, %d, scc_num, %d, color times, %d\n", scc_num, statis_set.size(), color_total);
+    printf("detected vertex number, %lu, scc_num, %lu, color times, %lu\n", scc_num, statis_set.size(), color_total);
   }
 }
 
@@ -370,7 +370,7 @@ graph_color(
     if (final_color_change == false) {
       if (DEBUG) {
         if (tid == 0)
-          printf("round num, %d\n", round_num);
+          printf("round num, %lu\n", round_num);
       }
       return;
     }
