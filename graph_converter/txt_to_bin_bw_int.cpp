@@ -1,15 +1,9 @@
-#include <errno.h>
+#include <cerrno>
 #include <fcntl.h>
 #include <iostream>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
-#include <sys/types.h>
 #include <unistd.h>
-
-using namespace std;
 
 typedef int vertex_t;
 typedef int index_t;
@@ -76,12 +70,12 @@ main(int argc, char** argv)
   }
   edge_count /= 2;
   vert_count = v_max - v_min + 1;
-  cout << "edge count: " << edge_count << endl;
-  cout << "max vertex id: " << v_max << endl;
-  cout << "min vertex id: " << v_min << endl;
+  std::cout << "edge count: " << edge_count << std::endl;
+  std::cout << "max vertex id: " << v_max << std::endl;
+  std::cout << "min vertex id: " << v_min << std::endl;
 
-  cout << "edge count: " << edge_count << endl;
-  cout << "vert count: " << vert_count << endl;
+  std::cout << "edge count: " << edge_count << std::endl;
+  std::cout << "vert count: " << vert_count << std::endl;
 
   int fd4 = open("bw_adjacent.bin", O_CREAT | O_RDWR, 00666);
   ftruncate(fd4, edge_count * sizeof(vertex_t));
@@ -176,14 +170,13 @@ main(int argc, char** argv)
 
   for (size_t i = 0; i <= vert_count && i < 8; i++) {
     for (index_t j = 0; j < degree[i]; ++j)
-      cout << i << "\t" << begin[i] << "\t" << adj[begin[i] + j] << endl;
+      std::cout << i << "\t" << begin[i] << "\t" << adj[begin[i] + j] << std::endl;
   }
 
-  cout << begin[vert_count] << endl;
+  std::cout << begin[vert_count] << std::endl;
 
   for (int i = 0; i < edge_count && i < 64; i++) {
-
-    cout << head[i] << "\t" << adj[i] << endl;
+    std::cout << head[i] << "\t" << adj[i] << std::endl;
   }
 
   munmap(ss, sizeof(char) * file_size);
