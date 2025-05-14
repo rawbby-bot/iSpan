@@ -6,632 +6,553 @@
 #include "wtime.h"
 #include <set>
 
-inline static void degree_rank(
-        const index_t fq_size,
-        index_t *scc_id,
-        const index_t thread_count,
-        index_t *small_queue,
-        index_t vert_beg,
-        index_t vert_end,
-        index_t tid,
-        index_t *mul_degree,
-        index_t *degree_prop,
-        index_t *fw_beg_pos,
-        index_t *fw_csr,
-        index_t *bw_beg_pos,
-        index_t *bw_csr
-        )
+inline static void
+degree_rank(
+  const index_t fq_size,
+  index_t* scc_id,
+  const index_t thread_count,
+  index_t* small_queue,
+  index_t vert_beg,
+  index_t vert_end,
+  index_t tid,
+  index_t* mul_degree,
+  index_t* degree_prop,
+  index_t* fw_beg_pos,
+  index_t* fw_csr,
+  index_t* bw_beg_pos,
+  index_t* bw_csr)
 {
-    for(vertex_t fq_vert_id = vert_beg; fq_vert_id < vert_end; ++ fq_vert_id)
-    {
+  for (vertex_t fq_vert_id = vert_beg; fq_vert_id < vert_end; ++fq_vert_id) {
+    vertex_t vert_id = small_queue[fq_vert_id];
+    if (scc_id[vert_id] == 0) {
+
+      index_t out_degree = 0;
+      index_t my_beg = fw_beg_pos[vert_id];
+      index_t my_end = fw_beg_pos[vert_id + 1];
+
+      for (; my_beg < my_end; ++my_beg) {
+        index_t w = fw_csr[my_beg];
+        if (scc_id[w] == 0)
+          out_degree++;
+      }
+
+      index_t in_degree = 0;
+      my_beg = bw_beg_pos[vert_id];
+      my_end = bw_beg_pos[vert_id + 1];
+
+      for (; my_beg < my_end; ++my_beg) {
+        index_t w = bw_csr[my_beg];
+        if (scc_id[w] == 0)
+          in_degree++;
+      }
+
+      mul_degree[vert_id] = (out_degree + 5) * (in_degree);
+
+      degree_prop[vert_id] = mul_degree[vert_id];
+    }
+  }
+}
+
+inline static void
+color_propagation(
+  const index_t fq_size,
+  index_t* scc_id,
+  const index_t thread_count,
+  index_t* small_queue,
+  index_t vert_beg,
+  index_t vert_end,
+  index_t tid,
+  index_t* color,
+  bool* color_change,
+
+  index_t* bw_beg_pos,
+  index_t* bw_csr,
+  index_t* mul_degree,
+  index_t* degree_prop,
+  index_t* color_times)
+{
+  index_t depth = 0;
+  while (true) {
+#pragma omp barrier
+    if (DEBUG) {
+      depth += 1;
+    }
+
+    int color_changed = 0;
+
+    for (vertex_t fq_vert_id = vert_beg; fq_vert_id < vert_end; ++fq_vert_id) {
+      vertex_t vert_id = small_queue[fq_vert_id];
+      if (scc_id[vert_id] == 0) {
+        index_t my_beg = bw_beg_pos[vert_id];
+        index_t my_end = bw_beg_pos[vert_id + 1];
+
+        for (; my_beg < my_end; ++my_beg) {
+          index_t w = bw_csr[my_beg];
+          if (vert_id == w)
+            continue;
+
+          if (scc_id[w] == 0) {
+            if (degree_prop[vert_id] < degree_prop[w]) {
+              degree_prop[vert_id] = degree_prop[w];
+              color[vert_id] = color[w];
+              color_times[vert_id] += 1;
+              if (color_changed == 0)
+                color_changed = 1;
+            } else if (degree_prop[vert_id] == degree_prop[w]) {
+              if (color[vert_id] < color[w]) {
+                color[vert_id] = color[w];
+                color_times[vert_id] += 1;
+                if (color_changed == 0)
+                  color_changed = 1;
+              }
+            }
+          }
+        }
+      }
+    }
+#pragma omp barrier
+
+    if (color_changed == 1) {
+      for (vertex_t fq_vert_id = vert_beg; fq_vert_id < vert_end; ++fq_vert_id) {
         vertex_t vert_id = small_queue[fq_vert_id];
-        if(scc_id[vert_id] == 0)
-        {
 
-            index_t out_degree = 0;
-            index_t my_beg = fw_beg_pos[vert_id];
-            index_t my_end = fw_beg_pos[vert_id+1];
+        if (scc_id[vert_id] == 0 && color[vert_id] != vert_id) {
+          index_t root = color[vert_id];
 
-            for(; my_beg < my_end; ++my_beg)
-            {
-                index_t w = fw_csr[my_beg];
-                if(scc_id[w] == 0)
-                    out_degree ++;
-            }
+          index_t c_depth = 0;
+          while (color[root] != root && c_depth < 100) {
 
-            index_t in_degree = 0;
-            my_beg = bw_beg_pos[vert_id];
-            my_end = bw_beg_pos[vert_id+1];
-
-            for(; my_beg < my_end; ++my_beg)
-            {
-                index_t w = bw_csr[my_beg];
-                if(scc_id[w] == 0)
-                    in_degree ++;
-            }
-
-            mul_degree[vert_id] = (out_degree + 5) * (in_degree);
-
-            degree_prop[vert_id] = mul_degree[vert_id];
+            root = color[root];
+            c_depth++;
+          }
+          index_t v_id = vert_id;
+          while (v_id != root && color[v_id] != root) {
+            index_t prev = v_id;
+            v_id = color[v_id];
+            color[prev] = root;
+            degree_prop[prev] = degree_prop[root];
+            color_times[prev] += 1;
+          }
         }
+      }
+      color_change[tid] = true;
+    } else {
+      color_change[tid] = false;
     }
+#pragma omp barrier
 
+    bool final_color_change = false;
+    for (index_t i = 0; i < thread_count; ++i) {
+      if (color_change[i]) {
+        final_color_change = true;
+        break;
+      }
+    }
+#pragma omp barrier
+    if (final_color_change == false) {
+      if (DEBUG) {
+        if (tid == 0) {
+          printf("iteration_depth, %d, ", depth);
+        }
+      }
+      return;
+    }
+  }
 }
 
-inline static void color_propagation(
-        const index_t fq_size,
-        index_t *scc_id,
-        const index_t thread_count,
-        index_t *small_queue,
-        index_t vert_beg,
-        index_t vert_end,
-        index_t tid,
-        index_t *color,
-        bool *color_change,
-
-        index_t *bw_beg_pos,
-        index_t *bw_csr,
-        index_t *mul_degree,
-        index_t *degree_prop,
-        index_t *color_times
-        )
-{
-    index_t depth = 0;
-    while(true)
-    {
-        #pragma omp barrier
-        if(DEBUG)
-        {
-            depth += 1;
-        }
-
-        int color_changed = 0;
-
-        for(vertex_t fq_vert_id = vert_beg; fq_vert_id < vert_end; ++ fq_vert_id)
-        {
-            vertex_t vert_id = small_queue[fq_vert_id];
-            if(scc_id[vert_id] == 0)
-            {
-                index_t my_beg = bw_beg_pos[vert_id];
-                index_t my_end = bw_beg_pos[vert_id+1];
-
-                for(; my_beg < my_end; ++my_beg)
-                {
-                    index_t w = bw_csr[my_beg];
-                    if(vert_id == w)
-                        continue;
-
-                    if(scc_id[w] == 0)
-                    {
-                        if(degree_prop[vert_id] < degree_prop[w])
-                        {
-                            degree_prop[vert_id] = degree_prop[w];
-                            color[vert_id] = color[w];
-                            color_times[vert_id] += 1;
-                            if(color_changed == 0)
-                                color_changed = 1;
-                        }
-                        else
-                            if(degree_prop[vert_id] == degree_prop[w])
-                            {
-                                if(color[vert_id] < color[w])
-                                {
-                                    color[vert_id] = color[w];
-                                    color_times[vert_id] += 1;
-                                    if(color_changed == 0)
-                                        color_changed = 1;
-                                }
-                            }
-                    }
-                }
-            }
-        }
-        #pragma omp barrier
-
-        if(color_changed == 1)
-        {
-            for(vertex_t fq_vert_id = vert_beg; fq_vert_id < vert_end; ++fq_vert_id)
-            {
-                vertex_t vert_id = small_queue[fq_vert_id];
-
-                if(scc_id[vert_id] == 0 && color[vert_id] != vert_id)
-                {
-                    index_t root = color[vert_id];
-
-                    index_t c_depth = 0;
-                    while(color[root] != root && c_depth < 100)
-                    {
-
-                        root = color[root];
-                        c_depth ++;
-                    }
-                    index_t v_id = vert_id;
-                    while(v_id != root && color[v_id] != root)
-                    {
-                        index_t prev = v_id;
-                        v_id = color[v_id];
-                        color[prev] = root;
-                        degree_prop[prev] = degree_prop[root];
-                        color_times[prev] += 1;
-
-                    }
-
-                }
-            }
-            color_change[tid] = true;
-        }
-        else
-        {
-            color_change[tid] = false;
-        }
-        #pragma omp barrier
-
-        bool final_color_change = false;
-        for(index_t i=0; i<thread_count; ++i)
-        {
-            if(color_change[i])
-            {
-                final_color_change = true;
-                break;
-            }
-        }
-        #pragma omp barrier
-        if(final_color_change == false)
-        {
-            if(DEBUG)
-            {
-                if(tid == 0)
-                {
-                    printf("iteration_depth, %d, ", depth);
-                }
-            }
-            return;
-        }
-    }
-}
-
-inline static void color_identify(
-        const index_t fq_size,
-        index_t *scc_id,
-        const index_t thread_count,
-        index_t *small_queue,
-        index_t vert_beg,
-        index_t vert_end,
-        index_t *color,
-        index_t *bw_beg_pos,
-        index_t *bw_csr,
-        index_t *q,
-        index_t *mul_degree,
-        index_t *degree_prop
-        )
+inline static void
+color_identify(
+  const index_t fq_size,
+  index_t* scc_id,
+  const index_t thread_count,
+  index_t* small_queue,
+  index_t vert_beg,
+  index_t vert_end,
+  index_t* color,
+  index_t* bw_beg_pos,
+  index_t* bw_csr,
+  index_t* q,
+  index_t* mul_degree,
+  index_t* degree_prop)
 {
 
-    for(vertex_t fq_vert_id = vert_beg; fq_vert_id < vert_end; ++ fq_vert_id)
-    {
-        vertex_t vert_id = small_queue[fq_vert_id];
-        if(scc_id[vert_id] == 0 && color[vert_id] == vert_id)
-        {
-            scc_id[vert_id] = vert_id;
+  for (vertex_t fq_vert_id = vert_beg; fq_vert_id < vert_end; ++fq_vert_id) {
+    vertex_t vert_id = small_queue[fq_vert_id];
+    if (scc_id[vert_id] == 0 && color[vert_id] == vert_id) {
+      scc_id[vert_id] = vert_id;
 
-            index_t head = 0;
-            index_t tail = 0;
-            q[tail++] = vert_id;
-            if(tail == fq_size)
-                tail = 0;
+      index_t head = 0;
+      index_t tail = 0;
+      q[tail++] = vert_id;
+      if (tail == fq_size)
+        tail = 0;
 
-            while(head != tail)
-            {
-                vertex_t temp_v = q[head++];
-                if(head == fq_size)
-                    head = 0;
-                index_t my_beg = bw_beg_pos[temp_v];
-                index_t my_end = bw_beg_pos[temp_v+1];
+      while (head != tail) {
+        vertex_t temp_v = q[head++];
+        if (head == fq_size)
+          head = 0;
+        index_t my_beg = bw_beg_pos[temp_v];
+        index_t my_end = bw_beg_pos[temp_v + 1];
 
-                for(; my_beg < my_end; ++my_beg)
-                {
-                    index_t w = bw_csr[my_beg];
+        for (; my_beg < my_end; ++my_beg) {
+          index_t w = bw_csr[my_beg];
 
-                    if(scc_id[w] == 0 && color[w] == vert_id)
-                    {
-                        scc_id[w] = vert_id;
-                        q[tail++] = w;
-                        if(tail == fq_size)
-                            tail = 0;
-                    }
-                }
-            }
+          if (scc_id[w] == 0 && color[w] == vert_id) {
+            scc_id[w] = vert_id;
+            q[tail++] = w;
+            if (tail == fq_size)
+              tail = 0;
+          }
         }
+      }
     }
+  }
 }
 
-inline static void color_init(
-        index_t *scc_id,
-        index_t *small_queue,
-        index_t vert_beg,
-        index_t vert_end,
-        index_t tid,
-        index_t *color,
-        bool *color_change,
-        index_t *mul_degree,
-        index_t *degree_prop,
-        index_t *color_times
-        )
+inline static void
+color_init(
+  index_t* scc_id,
+  index_t* small_queue,
+  index_t vert_beg,
+  index_t vert_end,
+  index_t tid,
+  index_t* color,
+  bool* color_change,
+  index_t* mul_degree,
+  index_t* degree_prop,
+  index_t* color_times)
 {
-    bool color_changed = false;
+  bool color_changed = false;
 
-    for(vertex_t fq_vert_id = vert_beg; fq_vert_id < vert_end; ++ fq_vert_id)
-    {
-        vertex_t vert_id = small_queue[fq_vert_id];
-        if(scc_id[vert_id] == 0)
-        {
-            color[vert_id] = vert_id;
-            degree_prop[vert_id] = mul_degree[vert_id];
+  for (vertex_t fq_vert_id = vert_beg; fq_vert_id < vert_end; ++fq_vert_id) {
+    vertex_t vert_id = small_queue[fq_vert_id];
+    if (scc_id[vert_id] == 0) {
+      color[vert_id] = vert_id;
+      degree_prop[vert_id] = mul_degree[vert_id];
 
-            if(!color_changed)
-                color_changed = true;
-            color_times[vert_id] += 1;
-        }
+      if (!color_changed)
+        color_changed = true;
+      color_times[vert_id] += 1;
     }
+  }
 
-    color_change[tid] = color_changed;
-
+  color_change[tid] = color_changed;
 }
 
-inline static void color_statistic(index_t *scc_id,
-                index_t *small_queue,
+inline static void
+color_statistic(index_t* scc_id,
+                index_t* small_queue,
                 index_t vert_beg,
                 index_t vert_end,
                 index_t tid,
-                index_t *color,
-                index_t *color_times,
+                index_t* color,
+                index_t* color_times,
                 index_t fq_size)
 {
-    index_t scc_num = 0;
-    std::set<int> statis_set;
-    vertex_t color_total = 0;
-    if(tid == 0)
-    {
-        for(vertex_t fq_vert_id = 0; fq_vert_id < fq_size; ++ fq_vert_id)
-        {
-            vertex_t vert_id = small_queue[fq_vert_id];
-            if(scc_id[vert_id] != 0)
-            {
-                scc_num++;
-                if(statis_set.find(color[vert_id]) == statis_set.end())
-                {
-                    statis_set.insert(color[vert_id]);
-                }
-            }
+  index_t scc_num = 0;
+  std::set<int> statis_set;
+  vertex_t color_total = 0;
+  if (tid == 0) {
+    for (vertex_t fq_vert_id = 0; fq_vert_id < fq_size; ++fq_vert_id) {
+      vertex_t vert_id = small_queue[fq_vert_id];
+      if (scc_id[vert_id] != 0) {
+        scc_num++;
+        if (statis_set.find(color[vert_id]) == statis_set.end()) {
+          statis_set.insert(color[vert_id]);
         }
-        for(index_t i=0; i<fq_size; ++i)
-        {
-            vertex_t vert_id = small_queue[i];
-            if(color_times[vert_id] > 0)
-                color_total += color_times[vert_id];
-        }
-        printf("detected vertex number, %d, scc_num, %d, color times, %d\n", scc_num, statis_set.size(), color_total);
+      }
     }
+    for (index_t i = 0; i < fq_size; ++i) {
+      vertex_t vert_id = small_queue[i];
+      if (color_times[vert_id] > 0)
+        color_total += color_times[vert_id];
+    }
+    printf("detected vertex number, %d, scc_num, %d, color times, %d\n", scc_num, statis_set.size(), color_total);
+  }
 }
 
-inline static void graph_color(
-        const index_t fq_size,
-        index_t *scc_id,
-        const index_t thread_count,
-        index_t *small_queue,
-        index_t vert_beg,
-        index_t vert_end,
-        index_t tid,
-        index_t *color,
-        bool *color_change,
-        double &time_color_1,
-        double &time_color_2,
-        double &time_color_init,
+inline static void
+graph_color(
+  const index_t fq_size,
+  index_t* scc_id,
+  const index_t thread_count,
+  index_t* small_queue,
+  index_t vert_beg,
+  index_t vert_end,
+  index_t tid,
+  index_t* color,
+  bool* color_change,
+  double& time_color_1,
+  double& time_color_2,
+  double& time_color_init,
 
-        index_t *bw_beg_pos,
-        index_t *bw_csr,
-        index_t *q,
-        index_t *mul_degree,
-        index_t *degree_prop,
-        index_t *color_times
-        )
+  index_t* bw_beg_pos,
+  index_t* bw_csr,
+  index_t* q,
+  index_t* mul_degree,
+  index_t* degree_prop,
+  index_t* color_times)
 {
-    index_t round_num = 0;
-    while(true)
+  index_t round_num = 0;
+  while (true) {
+#pragma omp barrier
+    double time = wtime();
+    color_propagation(fq_size,
+                      scc_id,
+                      thread_count,
+                      small_queue,
+                      vert_beg,
+                      vert_end,
+                      tid,
+                      color,
+                      color_change,
+
+                      bw_beg_pos,
+                      bw_csr,
+                      mul_degree,
+                      degree_prop,
+                      color_times);
+#pragma omp barrier
+
+    time_color_1 += wtime() - time;
+
+    time = wtime();
+    color_identify(fq_size,
+                   scc_id,
+                   thread_count,
+                   small_queue,
+                   vert_beg,
+                   vert_end,
+                   color,
+                   bw_beg_pos,
+                   bw_csr,
+                   q,
+                   mul_degree,
+                   degree_prop);
+#pragma omp barrier
+    time_color_2 += wtime() - time;
+
+    if (DEBUG) {
+      color_statistic(scc_id,
+                      small_queue,
+                      vert_beg,
+                      vert_end,
+                      tid,
+                      color,
+                      color_times,
+                      fq_size);
+    }
+#pragma omp barrier
+
+    time = wtime();
+    color_init(scc_id,
+               small_queue,
+               vert_beg,
+               vert_end,
+               tid,
+               color,
+               color_change,
+               mul_degree,
+               degree_prop,
+               color_times);
+#pragma omp barrier
+    time_color_init += wtime() - time;
+
+    bool final_color_change = false;
+    for (index_t i = 0; i < thread_count; ++i) {
+      if (color_change[i]) {
+
+        final_color_change = true;
+        break;
+      }
+    }
+#pragma omp barrier
+    if (DEBUG) {
+      round_num++;
+    }
+#pragma omp barrier
+    if (final_color_change == false) {
+      if (DEBUG) {
+        if (tid == 0)
+          printf("round num, %d\n", round_num);
+      }
+      return;
+    }
+  }
+}
+inline static void
+coloring_wcc_distribute(
+  const index_t fq_size,
+  index_t* scc_id,
+  index_t* small_queue,
+  index_t vert_beg,
+  index_t vert_end,
+  index_t* color,
+  index_t* fw_beg_pos,
+  index_t* fw_csr,
+  index_t* bw_beg_pos,
+  index_t* bw_csr,
+  index_t step,
+  index_t world_size)
+{
+  index_t depth = 0;
+  while (true) {
+
     {
-        #pragma omp barrier
-        double time = wtime();
-        color_propagation(fq_size,
-                scc_id,
-                thread_count,
-                small_queue,
-                vert_beg,
-                vert_end,
-                tid,
-                color,
-                color_change,
-
-                bw_beg_pos,
-                bw_csr,
-                mul_degree,
-                degree_prop,
-                color_times);
-        #pragma omp barrier
-
-        time_color_1 += wtime() - time;
-
-        time = wtime();
-        color_identify(fq_size,
-                scc_id,
-                thread_count,
-                small_queue,
-                vert_beg,
-                vert_end,
-                color,
-                bw_beg_pos,
-                bw_csr,
-                q,
-                mul_degree,
-                degree_prop);
-        #pragma omp barrier
-        time_color_2 += wtime() - time;
-
-        if(DEBUG)
-        {
-            color_statistic(scc_id,
-                    small_queue,
-                    vert_beg,
-                    vert_end,
-                    tid,
-                    color,
-                    color_times,
-                    fq_size);
-        }
-        #pragma omp barrier
-
-        time = wtime();
-        color_init(scc_id,
-                small_queue,
-                vert_beg,
-                vert_end,
-                tid,
-                color,
-                color_change,
-                mul_degree,
-                degree_prop,
-                color_times);
-        #pragma omp barrier
-        time_color_init += wtime() - time;
-
-        bool final_color_change = false;
-        for(index_t i=0; i<thread_count; ++i)
-        {
-            if(color_change[i])
-            {
-
-                final_color_change = true;
-                break;
-            }
-        }
-        #pragma omp barrier
-        if(DEBUG)
-        {
-            round_num ++;
-
-        }
-        #pragma omp barrier
-        if(final_color_change == false)
-        {
-            if(DEBUG)
-            {
-                if(tid == 0)
-                    printf("round num, %d\n", round_num);
-            }
-            return;
-        }
+      depth += 1;
     }
 
-}
-inline static void coloring_wcc_distribute(
-        const index_t fq_size,
-        index_t *scc_id,
-        index_t *small_queue,
-        index_t vert_beg,
-        index_t vert_end,
-        index_t *color,
-        index_t *fw_beg_pos,
-        index_t *fw_csr,
-        index_t *bw_beg_pos,
-        index_t *bw_csr,
-        index_t step,
-        index_t world_size
-        )
-{
-    index_t depth = 0;
-    while(true)
-    {
+    bool color_changed = false;
 
-        {
-            depth += 1;
-        }
+    for (vertex_t fq_vert_id = vert_beg; fq_vert_id < vert_end; ++fq_vert_id) {
+      vertex_t vert_id = small_queue[fq_vert_id];
+      if (scc_id[vert_id] == 0) {
 
-        bool color_changed = false;
+        index_t my_beg = bw_beg_pos[vert_id];
+        index_t my_end = bw_beg_pos[vert_id + 1];
 
-        for(vertex_t fq_vert_id = vert_beg; fq_vert_id < vert_end; ++ fq_vert_id)
-        {
-            vertex_t vert_id = small_queue[fq_vert_id];
-            if(scc_id[vert_id] == 0)
-            {
+        for (; my_beg < my_end; ++my_beg) {
+          index_t w = bw_csr[my_beg];
+          if (vert_id == w)
+            continue;
 
-                index_t my_beg = bw_beg_pos[vert_id];
-                index_t my_end = bw_beg_pos[vert_id+1];
-
-                for(; my_beg < my_end; ++my_beg)
-                {
-                    index_t w = bw_csr[my_beg];
-                    if(vert_id == w)
-                        continue;
-
-                    if(scc_id[w] == 0)
-                    {
-                        if(color[vert_id] < color[w])
-                        {
-                            color[vert_id] = color[w];
-                            if(!color_changed)
-                                color_changed = true;
-                        }
-                    }
-                }
-
-                my_beg = fw_beg_pos[vert_id];
-                my_end = fw_beg_pos[vert_id+1];
-
-                for(; my_beg < my_end; ++my_beg)
-                {
-                    index_t w = fw_csr[my_beg];
-                    if(vert_id == w)
-                        continue;
-
-                    if(scc_id[w] == 0)
-                    {
-                        if(color[vert_id] < color[w])
-                        {
-                            color[vert_id] = color[w];
-                            if(!color_changed)
-                                color_changed = true;
-                        }
-                    }
-                }
+          if (scc_id[w] == 0) {
+            if (color[vert_id] < color[w]) {
+              color[vert_id] = color[w];
+              if (!color_changed)
+                color_changed = true;
             }
+          }
         }
 
-        MPI_Allreduce(MPI_IN_PLACE,
-                &color_changed,
-                1,
-                MPI_C_BOOL,
-                MPI_LOR,
-                MPI_COMM_WORLD);
+        my_beg = fw_beg_pos[vert_id];
+        my_end = fw_beg_pos[vert_id + 1];
 
-        if(!color_changed)
-        {
+        for (; my_beg < my_end; ++my_beg) {
+          index_t w = fw_csr[my_beg];
+          if (vert_id == w)
+            continue;
 
-            MPI_Allgather(&color[vert_beg],
-                step,
-                MPI_LONG,
-                color,
-                step,
-                MPI_LONG,
-                MPI_COMM_WORLD);
+          if (scc_id[w] == 0) {
+            if (color[vert_id] < color[w]) {
+              color[vert_id] = color[w];
+              if (!color_changed)
+                color_changed = true;
+            }
+          }
+        }
+      }
+    }
 
-            index_t simple_end = world_size * step;
-            if(fq_size != simple_end)
-            {
-                MPI_Allreduce(MPI_IN_PLACE,
-                    &color[simple_end],
-                    fq_size - simple_end,
+    MPI_Allreduce(MPI_IN_PLACE,
+                  &color_changed,
+                  1,
+                  MPI_C_BOOL,
+                  MPI_LOR,
+                  MPI_COMM_WORLD);
+
+    if (!color_changed) {
+
+      MPI_Allgather(&color[vert_beg],
+                    step,
                     MPI_LONG,
-                    MPI_MAX,
+                    color,
+                    step,
+                    MPI_LONG,
                     MPI_COMM_WORLD);
-            }
-            break;
-        }
 
+      index_t simple_end = world_size * step;
+      if (fq_size != simple_end) {
+        MPI_Allreduce(MPI_IN_PLACE,
+                      &color[simple_end],
+                      fq_size - simple_end,
+                      MPI_LONG,
+                      MPI_MAX,
+                      MPI_COMM_WORLD);
+      }
+      break;
     }
-
+  }
 }
-inline static void coloring_wcc(
+inline static void
+coloring_wcc(
 
-        index_t *color,
-        index_t *sub_fw_beg,
-        index_t *sub_fw_csr,
-        index_t *sub_bw_beg,
-        index_t *sub_bw_csr,
-        index_t step,
-        index_t world_size,
-        vertex_t vert_beg,
-        vertex_t vert_end,
-        vertex_t sub_v_count
-        )
+  index_t* color,
+  index_t* sub_fw_beg,
+  index_t* sub_fw_csr,
+  index_t* sub_bw_beg,
+  index_t* sub_bw_csr,
+  index_t step,
+  index_t world_size,
+  vertex_t vert_beg,
+  vertex_t vert_end,
+  vertex_t sub_v_count)
 {
-    index_t depth = 0;
-    while(true)
+  index_t depth = 0;
+  while (true) {
+
     {
-
-        {
-            depth += 1;
-        }
-
-        int color_changed = 0;
-
-        for(vertex_t vert_id = vert_beg; vert_id < vert_end; ++ vert_id)
-        {
-
-                index_t my_beg = sub_bw_beg[vert_id];
-                index_t my_end = sub_bw_beg[vert_id+1];
-
-                for(; my_beg < my_end; ++my_beg)
-                {
-                    index_t w = sub_bw_csr[my_beg];
-                    if(vert_id == w)
-                        continue;
-
-                    if(color[vert_id] < color[w])
-                    {
-                        color[vert_id] = color[w];
-                        if(color_changed == 0)
-                            color_changed = 1;
-                    }
-                }
-
-                my_beg = sub_fw_beg[vert_id];
-                my_end = sub_fw_beg[vert_id+1];
-
-                for(; my_beg < my_end; ++my_beg)
-                {
-                    index_t w = sub_fw_csr[my_beg];
-                    if(vert_id == w)
-                        continue;
-
-                    if(color[vert_id] < color[w])
-                    {
-                        color[vert_id] = color[w];
-                        if(color_changed == 0)
-                            color_changed = 1;
-                    }
-                }
-
-        }
-
-        if(color_changed == 1)
-        {
-            for(vertex_t vert_id = vert_beg; vert_id < vert_end; ++vert_id)
-            {
-
-                if(color[vert_id] != vert_id)
-                {
-                    index_t root = color[vert_id];
-                    index_t c_depth = 0;
-                    while(color[root] != root && c_depth < 100)
-                    {
-                        root = color[root];
-                        c_depth ++;
-                    }
-                    index_t v_id = vert_id;
-                    while(v_id != root && color[v_id] != root)
-                    {
-                        index_t prev = v_id;
-                        v_id = color[v_id];
-                        color[prev] = root;
-                    }
-                }
-            }
-
-        }
-
-        if(color_changed == 0)
-        {
-            break;
-        }
-
+      depth += 1;
     }
+
+    int color_changed = 0;
+
+    for (vertex_t vert_id = vert_beg; vert_id < vert_end; ++vert_id) {
+
+      index_t my_beg = sub_bw_beg[vert_id];
+      index_t my_end = sub_bw_beg[vert_id + 1];
+
+      for (; my_beg < my_end; ++my_beg) {
+        index_t w = sub_bw_csr[my_beg];
+        if (vert_id == w)
+          continue;
+
+        if (color[vert_id] < color[w]) {
+          color[vert_id] = color[w];
+          if (color_changed == 0)
+            color_changed = 1;
+        }
+      }
+
+      my_beg = sub_fw_beg[vert_id];
+      my_end = sub_fw_beg[vert_id + 1];
+
+      for (; my_beg < my_end; ++my_beg) {
+        index_t w = sub_fw_csr[my_beg];
+        if (vert_id == w)
+          continue;
+
+        if (color[vert_id] < color[w]) {
+          color[vert_id] = color[w];
+          if (color_changed == 0)
+            color_changed = 1;
+        }
+      }
+    }
+
+    if (color_changed == 1) {
+      for (vertex_t vert_id = vert_beg; vert_id < vert_end; ++vert_id) {
+
+        if (color[vert_id] != vert_id) {
+          index_t root = color[vert_id];
+          index_t c_depth = 0;
+          while (color[root] != root && c_depth < 100) {
+            root = color[root];
+            c_depth++;
+          }
+          index_t v_id = vert_id;
+          while (v_id != root && color[v_id] != root) {
+            index_t prev = v_id;
+            v_id = color[v_id];
+            color[prev] = root;
+          }
+        }
+      }
+    }
+
+    if (color_changed == 0) {
+      break;
+    }
+  }
 }
 #endif

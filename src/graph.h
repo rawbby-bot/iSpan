@@ -20,8 +20,8 @@ public:
   index_t src_count;
 
 public:
-  graph() {};
-  ~graph() {};
+  graph(){};
+  ~graph(){};
   graph(const char* fw_beg_file,
         const char* fw_csr_file,
         const char* bw_beg_file,
