@@ -7,20 +7,20 @@ int
 main()
 {
   // forward graph
-  constexpr auto fn_fw_adjacent = "fw_adjacent.bin";
-  constexpr auto fn_fw_begin = "fw_begin.bin";
-  constexpr auto fn_fw_head = "fw_head.bin";
-  constexpr auto fn_out_degree = "out_degree.bin";
+  constexpr auto fn_fw_adjacent = "toy_fw_adjacent.bin";
+  constexpr auto fn_fw_begin = "toy_fw_begin.bin";
+  constexpr auto fn_fw_head = "toy_fw_head.bin";
+  constexpr auto fn_out_degree = "toy_out_degree.bin";
   ASSERT(std::filesystem::exists(fn_fw_adjacent));
   ASSERT(std::filesystem::exists(fn_fw_begin));
   ASSERT(std::filesystem::exists(fn_fw_head));
   ASSERT(std::filesystem::exists(fn_out_degree));
 
   // backward graph
-  constexpr auto fn_bw_adjacent = "bw_adjacent.bin";
-  constexpr auto fn_bw_begin = "bw_begin.bin";
-  constexpr auto fn_bw_head = "bw_head.bin";
-  constexpr auto fn_in_degree = "in_degree.bin";
+  constexpr auto fn_bw_adjacent = "toy_bw_adjacent.bin";
+  constexpr auto fn_bw_begin = "toy_bw_begin.bin";
+  constexpr auto fn_bw_head = "toy_bw_head.bin";
+  constexpr auto fn_in_degree = "toy_in_degree.bin";
   ASSERT(std::filesystem::exists(fn_bw_adjacent));
   ASSERT(std::filesystem::exists(fn_bw_begin));
   ASSERT(std::filesystem::exists(fn_bw_head));

@@ -20,3 +20,6 @@ endforeach ()
 
 # as src and src_mpi are not libraries but monolithic CLIs we 'steal' implementations rather than linking
 target_sources(test_toy PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../src/graph.cpp")
+target_sources(test_toy2 PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../src/graph.cpp")
+add_dependencies(test_toy convert_toy)
+add_dependencies(test_toy2 convert_toy2)
