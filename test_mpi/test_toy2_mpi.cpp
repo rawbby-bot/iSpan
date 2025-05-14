@@ -1,4 +1,5 @@
-#include "../src/graph.h"
+#include "../src_mpi/graph.h"
+#include "../src_mpi/scc_common.h"
 #include "./test_util.h"
 
 #include <filesystem>
@@ -25,6 +26,14 @@ main()
   ASSERT(std::filesystem::exists(fn_bw_begin));
   ASSERT(std::filesystem::exists(fn_bw_head));
   ASSERT(std::filesystem::exists(fn_in_degree));
+
+  MPI_Init(nullptr, nullptr);
+
+  int world_rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
+
+  int world_size;
+  MPI_Comm_size(MPI_COMM_WORLD, &world_size);
 
   const auto g = graph(fn_fw_begin, fn_fw_adjacent, fn_bw_begin, fn_bw_adjacent);
   ASSERT(g.vert_count == 7);
@@ -71,4 +80,26 @@ main()
   ASSERT(g.bw_csr[0x8] == 3); // 3 4
   ASSERT(g.bw_csr[0x9] == 6); // 6 5
   ASSERT(g.bw_csr[0xa] == 5); // 5 6
+
+  const auto avg_time = std::make_unique<double[]>(15);
+
+  if (!world_rank) {
+
+    const auto assignment = prepare_assignment(&g);
+    scc_detection(&g, 30, 200, 10, 0.01, 1, avg_time.get(), world_rank, world_size, 1, assignment.get());
+
+    ASSERT(assignment[0] == 0);
+    ASSERT(assignment[1] == 1);
+    ASSERT(assignment[2] == 0);
+    ASSERT(assignment[3] == 1);
+    ASSERT(assignment[4] == 1);
+    ASSERT(assignment[5] == 5);
+    ASSERT(assignment[6] == 5);
+
+  } else {
+
+    scc_detection(&g, 30, 200, 10, 0.01, 1, avg_time.get(), world_rank, world_size, 1, nullptr);
+  }
+
+  MPI_Finalize();
 }

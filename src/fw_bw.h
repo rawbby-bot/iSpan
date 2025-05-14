@@ -1,12 +1,12 @@
 #ifndef FW_BW_H
 #define FW_BW_H
 
-#include "graph.h"
+#include "trim_1_gfq.h"
 #include "util.h"
 #include "wtime.h"
+
 #include <iostream>
 #include <set>
-#include <trim_1_gfq.h>
 
 inline void
 fw_bfs(

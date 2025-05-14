@@ -4,6 +4,15 @@
 #include "util.h"
 #include "wtime.h"
 
+#include <memory>
+
+inline auto
+prepare_assignment(const graph* g)
+{
+  const auto entries = static_cast<std::size_t>(g->vert_count + 1);
+  return std::make_unique<vertex_t[]>(entries);
+}
+
 graph*
 graph_load(
   const char* fw_beg_file,
@@ -15,12 +24,13 @@ graph_load(
 void
 scc_detection(
   const graph* g,
-  const int alpha,
-  const int beta,
-  const int gamma,
-  const double theta,
-  const index_t thread_count,
-  double* avg_time);
+  int alpha,
+  int beta,
+  int gamma,
+  double theta,
+  index_t thread_count,
+  double* avg_time,
+  vertex_t* assignment = nullptr);
 
 void
 get_scc_result(

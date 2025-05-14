@@ -1,7 +1,11 @@
 #include "../src/graph.h"
+#include "../src/scc_common.h"
 #include "./test_util.h"
 
+#include <chrono>
 #include <filesystem>
+#include <memory>
+#include <thread>
 
 int
 main()
@@ -81,4 +85,16 @@ main()
   ASSERT(g.bw_csr[0xd] == 3); // 4 3
   ASSERT(g.bw_csr[0xe] == 6); // 5 6
   ASSERT(g.bw_csr[0xf] == 5); // 6 5
+
+  const auto avg_time = std::make_unique<double[]>(15);
+  const auto assignment = prepare_assignment(&g);
+  scc_detection(&g, 30, 200, 10, 0.01, 1, avg_time.get(), assignment.get());
+
+  ASSERT(assignment[0] == 0);
+  ASSERT(assignment[1] == 0);
+  ASSERT(assignment[2] == 0);
+  ASSERT(assignment[3] == 0);
+  ASSERT(assignment[4] == 0);
+  ASSERT(assignment[5] == 5);
+  ASSERT(assignment[6] == 5);
 }

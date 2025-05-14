@@ -1,39 +1,39 @@
+#include "color_propagation.h"
+#include "fw_bw.h"
 #include "graph.h"
+#include "scc_common.h"
+#include "trim_1_gfq.h"
 #include "wtime.h"
+
 #include <algorithm>
+#include <cstdio>
+#include <cstring>
 #include <fcntl.h>
 #include <iostream>
 #include <mpi.h>
 #include <omp.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <unordered_map>
+#include <vector>
 
-#include "scc_common.h"
-
-#include "color_propagation.h"
-#include "fw_bw.h"
-#include "openmp_wcc.hpp"
-#include "trim_1_gfq.h"
-#include "trim_2_3.h"
-#define INF -1
+#define INF (-1)
 
 void
 scc_detection(
   const graph* g,
-  const int alpha,
-  const int beta,
-  const int gamma,
-  const double theta,
-  const index_t thread_count,
+  int alpha,
+  int beta,
+  int gamma,
+  double theta,
+  index_t thread_count,
   double* avg_time,
   int world_rank,
   int world_size,
-  int run_time)
+  int run_time,
+  vertex_t* assignment)
 {
   const index_t vert_count = g->vert_count;
   const long_t edge_count = g->edge_count;
@@ -413,6 +413,22 @@ scc_detection(
   if (DEBUG)
     printf("total time, %.3lf\n", end_time * 1000);
 
-  get_scc_result(scc_id,
-                 vert_count);
+  get_scc_result(scc_id, vert_count);
+
+  if (assignment) {
+    std::unordered_map<vertex_t, std::vector<vertex_t>> scc_components;
+    for (vertex_t i = 0; i <= vert_count; ++i) {
+      const auto repr = scc_id[i] == -1 ? i : scc_id[i];
+      scc_components[repr].push_back(i);
+    }
+
+    for (const auto& [_, vs] : scc_components) {
+      const auto min_v = *std::ranges::min_element(vs);
+      for (vertex_t v : vs) {
+        std::cout << v << ' ';
+        assignment[v] = min_v;
+      }
+      std::cout << std::endl;
+    }
+  }
 }

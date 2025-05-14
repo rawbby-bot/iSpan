@@ -19,7 +19,11 @@ foreach (TARGET_SRC IN LISTS CPP_FILES)
 endforeach ()
 
 # as src and src_mpi are not libraries but monolithic CLIs we 'steal' implementations rather than linking
-target_sources(test_toy PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../src/graph.cpp")
-target_sources(test_toy2 PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../src/graph.cpp")
+set(EXTRA_SOURCES
+        "${CMAKE_CURRENT_SOURCE_DIR}/../src/graph.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/../src/load_print.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/../src/scc_core.cpp")
+target_sources(test_toy PRIVATE ${EXTRA_SOURCES})
+target_sources(test_toy2 PRIVATE ${EXTRA_SOURCES})
 add_dependencies(test_toy convert_toy)
 add_dependencies(test_toy2 convert_toy2)
