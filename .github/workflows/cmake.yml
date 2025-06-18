@@ -31,7 +31,7 @@ jobs:
       - name: Update & install Cmake, Ninja, GCC and Intel MPI
         run: |
           sudo apt-get update
-          sudo apt-get install -y g++-14 cmake ninja-build intel-oneapi-mpi-devel libopenmpi-dev openmpi-bin
+          sudo apt-get install -y g++-14 cmake ninja-build intel-oneapi-mpi-devel
 
       - name: Configure
         shell: bash
