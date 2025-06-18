@@ -1,26 +1,44 @@
-name: CMake CI
+# .github/workflows/intel-openmpi.yml
+name: Build with Intel oneAPI & OpenMPI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ main ]
   pull_request:
+    branches: [ main ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
 
-      - name: Install dependencies
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Add Intel oneAPI APT repository
+        run: |
+          wget -qO - https://apt.repos.intel.com/oneapi/gpgkey | sudo apt-key add -  
+          sudo sh -c 'echo "deb https://apt.repos.intel.com/oneapi all main" > /etc/apt/sources.list.d/intel-oneapi.list'
+
+      - name: Install Intel oneAPI compilers & MPI
         run: |
           sudo apt-get update
-          sudo apt-get install -y g++-14 cmake ninja-build wget gnupg software-properties-common
-          wget -qO - https://apt.repos.intel.com/keys/intel.asc | sudo apt-key add -
-          echo "deb https://apt.repos.intel.com/oneapi all main" | sudo tee /etc/apt/sources.list.d/intel-oneapi.list
-          sudo apt-get update
-          sudo apt-get install -y intel-oneapi-mpi-devel
+          sudo apt-get install -y \
+            intel-oneapi-compiler-dpcpp-cpp \
+            intel-oneapi-compiler-fortran \
+            intel-oneapi-mpi-openmpi
+
+      - name: Install system OpenMPI
+        run: sudo apt-get install -y libopenmpi-dev openmpi-bin
+
+      - name: Source Intel oneAPI environment
+        shell: bash
+        run: |
+          source /opt/intel/oneapi/setvars.sh --force
+          echo "Intel oneAPI environment loaded"
 
       - name: Configure
+        shell: bash
         run: |
           source /opt/intel/oneapi/mpi/latest/env/vars.sh
           cmake -S . -B build -G Ninja \
@@ -30,12 +48,13 @@ jobs:
                 -DBUILD_TESTING=ON
 
       - name: Build
+        shell: bash
         run: |
           source /opt/intel/oneapi/mpi/latest/env/vars.sh
           cmake --build build --parallel
 
       - name: Test
+        shell: bash
         run: |
           source /opt/intel/oneapi/mpi/latest/env/vars.sh
           ctest --test-dir build --output-on-failure
-
