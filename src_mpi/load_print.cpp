@@ -2,6 +2,7 @@
 #include "util.h"
 #include "wtime.h"
 #include <map>
+#include <vector>
 
 graph*
 graph_load(
@@ -9,15 +10,14 @@ graph_load(
   const char* fw_csr_file,
   const char* bw_beg_file,
   const char* bw_csr_file,
-  double* avg_time)
+  std::vector<double>& avg_time)
 {
   graph* g = new graph(fw_beg_file,
                        fw_csr_file,
                        bw_beg_file,
                        bw_csr_file);
 
-  for (index_t i = 0; i < 15; ++i)
-    avg_time[i] = 0.0;
+  avg_time.assign(15, 0.0);
   return g;
 }
 
@@ -53,12 +53,12 @@ get_scc_result(
 void
 print_time_result(
   index_t run_times,
-  double* avg_time)
+  std::vector<double>& avg_time)
 {
 
   if (run_times > 0) {
-    for (index_t i = 0; i < 15; ++i)
-      avg_time[i] = (avg_time[i] / run_times) * 1000;
+    for (double& t : avg_time)
+      t = (t / run_times) * 1000;
     printf("\nAverage Time Consumption for Running %lu Times (ms)\n", run_times);
     printf("Trim, %.3lf\n", avg_time[0]);
     printf("Elephant SCC, %.3lf\n", avg_time[1]);

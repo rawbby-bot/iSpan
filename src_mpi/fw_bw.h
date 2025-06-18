@@ -6,6 +6,7 @@
 #include "wtime.h"
 #include <iostream>
 #include <set>
+#include <vector>
 
 inline void
 fw_bfs(
@@ -90,7 +91,7 @@ fw_bfs(
         }
       }
     } else {
-      index_t* q = new index_t[queue_size];
+      std::vector<index_t> q(queue_size);
       index_t head = 0;
       index_t tail = 0;
 
@@ -221,7 +222,7 @@ fw_bfs(
 
         MPI_Request request;
 
-        for (int i = 0; i < world_size; ++i) {
+        for (vertex_t i = 0; i < world_size; ++i) {
           if (i != world_rank) {
             MPI_Isend(fq_comm,
                       front_comm[world_rank],
@@ -235,7 +236,7 @@ fw_bfs(
         }
 
         vertex_t fq_begin = front_comm[world_rank];
-        for (int i = 0; i < world_size; ++i) {
+        for (vertex_t i = 0; i < world_size; ++i) {
           if (i != world_rank) {
             MPI_Recv(&fq_comm[fq_begin],
                      front_comm[i],
@@ -249,7 +250,7 @@ fw_bfs(
         }
         sync_time += wtime() - temp_time;
 
-        for (int i = front_comm[world_rank]; i < front_count; ++i) {
+        for (index_t i = front_comm[world_rank]; i < front_count; ++i) {
           vertex_t v_new = fq_comm[i];
           if (fw_sa[v_new] == -1) {
             fw_sa[v_new] = level + 1;
@@ -361,7 +362,7 @@ bw_bfs(
       }
       work_comm[tid] = my_work_next;
     } else {
-      index_t* q = new index_t[queue_size];
+      std::vector<index_t> q(queue_size);
       index_t head = 0;
       index_t tail = 0;
 
@@ -479,7 +480,7 @@ bw_bfs(
 
         MPI_Request request;
 
-        for (int i = 0; i < world_size; ++i) {
+        for (vertex_t i = 0; i < world_size; ++i) {
           if (i != world_rank) {
             MPI_Isend(fq_comm,
                       front_comm[world_rank],
@@ -493,7 +494,7 @@ bw_bfs(
         }
 
         vertex_t fq_begin = front_comm[world_rank];
-        for (int i = 0; i < world_size; ++i) {
+        for (vertex_t i = 0; i < world_size; ++i) {
           if (i != world_rank) {
             MPI_Recv(&fq_comm[fq_begin],
                      front_comm[i],
@@ -508,7 +509,7 @@ bw_bfs(
 
         sync_time += wtime() - temp_time;
 
-        for (int i = 0; i < front_count; ++i) {
+        for (index_t i = 0; i < front_count; ++i) {
           vertex_t v_new = fq_comm[i];
           if (bw_sa[v_new] == -1) {
             bw_sa[v_new] = level;
@@ -631,7 +632,7 @@ fw_bfs_fq(
         }
       }
     } else {
-      index_t* q = new index_t[queue_size];
+      std::vector<index_t> q(queue_size);
       index_t head = 0;
       index_t tail = 0;
 
@@ -660,7 +661,6 @@ fw_bfs_fq(
           }
         }
       }
-      delete[] q;
     }
 
     vertex_front[tid] = vertex_frontier;
@@ -820,7 +820,7 @@ bw_bfs_fq(
         }
       }
     } else {
-      index_t* q = new index_t[queue_size];
+      std::vector<index_t> q(queue_size);
       index_t head = 0;
       index_t tail = 0;
 
@@ -851,7 +851,6 @@ bw_bfs_fq(
           }
         }
       }
-      delete[] q;
       if (!DEBUG)
         break;
     }
@@ -914,19 +913,19 @@ inline void
 process_wcc(
   index_t vert_beg,
   index_t vert_end,
-  vertex_t* wcc_fq,
+  std::vector<vertex_t>& wcc_fq,
   vertex_t* color,
   vertex_t& wcc_fq_size)
 {
-  std::set<int> s_fq;
+  std::set<vertex_t> s_fq;
   for (vertex_t i = vert_beg; i < vert_end; ++i) {
     if (s_fq.find(i) == s_fq.end())
       s_fq.insert(color[i]);
   }
 
   wcc_fq_size = s_fq.size();
-  std::set<int>::iterator it;
-  int i = 0;
+  std::set<vertex_t>::iterator it;
+  index_t i = 0;
   for (it = s_fq.begin(); it != s_fq.end(); ++it, ++i) {
     wcc_fq[i] = *it;
   }
@@ -945,14 +944,14 @@ mice_fw_bw(
   index_t thread_count,
   vertex_t* frontier_queue,
   vertex_t sub_v_count,
-  vertex_t* wcc_fq,
+  std::vector<vertex_t>& wcc_fq,
   vertex_t wcc_fq_size)
 {
   index_t step = wcc_fq_size / thread_count;
   index_t wcc_beg = tid * step;
   index_t wcc_end = (tid == thread_count - 1 ? wcc_fq_size : wcc_beg + step);
 
-  index_t* q = new index_t[sub_v_count];
+  std::vector<index_t> q(sub_v_count);
   index_t head = 0;
   index_t tail = 0;
 
@@ -1019,6 +1018,5 @@ mice_fw_bw(
       }
     }
   }
-  delete[] q;
 }
 #endif

@@ -29,7 +29,7 @@ scc_detection(
   int gamma,
   double theta,
   index_t thread_count,
-  double* avg_time,
+  std::vector<double>& avg_time,
   int world_rank,
   int world_size,
   int run_time,
@@ -47,14 +47,14 @@ scc_detection(
   vertex_t* bw_csr = g->bw_csr;
 
   if (VERBOSE) {
-    for (int i = fw_beg_pos[vert_count]; i < fw_beg_pos[vert_count + 1]; ++i)
+    for (long_t i = fw_beg_pos[vert_count]; i < fw_beg_pos[vert_count + 1]; ++i)
       printf("%lu\n", fw_csr[i]);
   }
 
-  index_t* max_pivot_list = new index_t[thread_count];
-  index_t* max_degree_list = new index_t[thread_count];
+  std::vector<index_t> max_pivot_list(thread_count);
+  std::vector<index_t> max_degree_list(thread_count);
 
-  index_t* thread_bin = new index_t[thread_count];
+  std::vector<index_t> thread_bin(thread_count);
 
   index_t* front_comm = (index_t*)calloc(thread_count, sizeof(index_t));
 
@@ -63,8 +63,7 @@ scc_detection(
   index_t* size_bw_beg = (index_t*)calloc(thread_count + 1, sizeof(index_t));
   index_t* size_bw_csr = (index_t*)calloc(thread_count + 1, sizeof(index_t));
 
-  bool* color_change = new bool[thread_count];
-  memset(color_change, 0, sizeof(bool) * thread_count);
+  std::vector<bool> color_change(thread_count);
 
   vertex_t wcc_fq_size = 0;
 
@@ -84,8 +83,8 @@ scc_detection(
   index_t vert_end = (pid == p_count - 1 ? vert_count : vert_beg + step);
   unsigned int* sa_compress = (unsigned int*)calloc(s, sizeof(unsigned int));
 
-  index_t* small_queue = new index_t[virtual_count + 1];
-  index_t* wcc_fq = new index_t[virtual_count + 1];
+  std::vector<index_t> small_queue(virtual_count + 1);
+  std::vector<index_t> wcc_fq(virtual_count + 1);
   vertex_t* vert_map = (vertex_t*)calloc(vert_count + 1, sizeof(vertex_t));
   vertex_t* sub_fw_beg = (vertex_t*)calloc(vert_count + 1, sizeof(vertex_t));
   vertex_t* sub_fw_csr = (vertex_t*)calloc(edge_count + 1, sizeof(vertex_t));
@@ -358,7 +357,7 @@ scc_detection(
                  fw_sa_temp,
                  world_rank,
                  world_size,
-                 small_queue,
+                 small_queue.data(),
                  sub_v_count,
                  wcc_fq,
                  wcc_fq_size);
@@ -374,7 +373,7 @@ scc_detection(
 
       printf("%lu,final comm time,%.3lf\n", tid, time_comm * 1000);
 
-      for (int i = 0; i < sub_v_count; ++i) {
+      for (index_t i = 0; i < sub_v_count; ++i) {
         vertex_t actual_v = small_queue[i];
         scc_id[actual_v] = small_queue[scc_id_mice[i]];
       }
