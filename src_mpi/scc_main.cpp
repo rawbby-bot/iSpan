@@ -4,6 +4,7 @@
 #include "scc_common.h"
 #include <mpi.h>
 #include <unistd.h>
+#include <vector>
 
 int
 main(int args, char** argv)
@@ -33,7 +34,7 @@ main(int args, char** argv)
   const double theta = atof(argv[9]);
   const index_t run_times = atoi(argv[10]);
 
-  double* avg_time = new double[15];
+  std::vector<double> avg_time(15);
 
   graph* g = graph_load(fw_beg_file,
                         fw_csr_file,

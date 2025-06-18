@@ -250,7 +250,7 @@ color_statistic(index_t* scc_id,
                 index_t fq_size)
 {
   index_t scc_num = 0;
-  std::set<int> statis_set;
+  std::set<vertex_t> statis_set;
   vertex_t color_total = 0;
   if (tid == 0) {
     for (vertex_t fq_vert_id = 0; fq_vert_id < fq_size; ++fq_vert_id) {

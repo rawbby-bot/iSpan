@@ -3,6 +3,7 @@
 #include "./test_util.h"
 
 #include <filesystem>
+#include <vector>
 
 int
 main()
@@ -81,12 +82,12 @@ main()
   ASSERT(g.bw_csr[0x9] == 6); // 6 5
   ASSERT(g.bw_csr[0xa] == 5); // 5 6
 
-  const auto avg_time = std::make_unique<double[]>(15);
+  std::vector<double> avg_time(15);
 
   if (!world_rank) {
 
     const auto assignment = prepare_assignment(&g);
-    scc_detection(&g, 30, 200, 10, 0.01, 1, avg_time.get(), world_rank, world_size, 1, assignment.get());
+    scc_detection(&g, 30, 200, 10, 0.01, 1, avg_time, world_rank, world_size, 1, assignment.get());
 
     ASSERT(assignment[0] == 0);
     ASSERT(assignment[1] == 1);
@@ -98,7 +99,7 @@ main()
 
   } else {
 
-    scc_detection(&g, 30, 200, 10, 0.01, 1, avg_time.get(), world_rank, world_size, 1, nullptr);
+    scc_detection(&g, 30, 200, 10, 0.01, 1, avg_time, world_rank, world_size, 1, nullptr);
   }
 
   MPI_Finalize();
