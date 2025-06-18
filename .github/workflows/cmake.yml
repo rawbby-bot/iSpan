@@ -1,15 +1,14 @@
-# .github/workflows/intel-openmpi.yml
 name: Build with Intel oneAPI & OpenMPI
 
 on:
-  pull_request:      # run on every PR event :contentReference[oaicite:5]{index=5}
+  pull_request:
   push:
     branches:
-      - main        # and on pushes to main :contentReference[oaicite:6]{index=6}
+      - main
 
 jobs:
   build:
-    runs-on: ubuntu-latest  # ~21 GB free by default :contentReference[oaicite:7]{index=7}
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
@@ -22,7 +21,7 @@ jobs:
         run: |
           wget -qO- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB \
             | gpg --dearmor \
-            | sudo tee /usr/share/keyrings/oneapi-archive-keyring.gpg > /dev/null  :contentReference[oaicite:8]{index=8}
+            | sudo tee /usr/share/keyrings/oneapi-archive-keyring.gpg > /dev/null
 
       - name: Add Intel oneAPI APT source
         run: |
@@ -37,7 +36,7 @@ jobs:
             intel-oneapi-compiler-fortran \
             intel-oneapi-mpi-devel \
             libopenmpi-dev \
-            openmpi-bin  :contentReference[oaicite:9]{index=9}
+            openmpi-bin
 
       - name: Source Intel oneAPI environment
         shell: bash
