@@ -28,28 +28,28 @@ jobs:
           echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] https://apt.repos.intel.com/oneapi all main" \
             | sudo tee /etc/apt/sources.list.d/oneapi.list
 
-      - name: Update & install Intel oneAPI compilers & MPI
+      - name: Update & install Cmake, Ninja, GCC and Intel MPI
         run: |
           sudo apt-get update
-          sudo apt-get install -y \
-            intel-oneapi-compiler-dpcpp-cpp \
-            intel-oneapi-compiler-fortran \
-            intel-oneapi-mpi-devel \
-            libopenmpi-dev \
-            openmpi-bin
+          sudo apt-get install -y g++-14 cmake ninja-build intel-oneapi-mpi-devel libopenmpi-dev openmpi-bin
 
-      - name: Source Intel oneAPI environment
-        shell: bash
-        run: source /opt/intel/oneapi/setvars.sh --force
-
-      - name: Configure & Build with CMake
+      - name: Configure
         shell: bash
         run: |
           source /opt/intel/oneapi/setvars.sh --force
-          export OMPI_CC=icx OMPI_CXX=icpx OMPI_FC=ifx
-          mkdir -p build && cd build
-          cmake .. \
-            -DCMAKE_C_COMPILER=mpicc \
-            -DCMAKE_CXX_COMPILER=mpicxx \
-            -DCMAKE_Fortran_COMPILER=mpifort
-          make -j$(nproc)
+          cmake -S . -B build -G Ninja \
+                -DCMAKE_CXX_COMPILER=g++-14 \
+                -DBUILD_MPI=ON \
+                -DBUILD_TESTING=ON
+
+      - name: Build
+        shell: bash
+        run: |
+          source /opt/intel/oneapi/setvars.sh --force
+          cmake --build build --parallel
+
+      - name: Test
+        shell: bash
+        run: |
+          source /opt/intel/oneapi/setvars.sh --force
+          ctest --test-dir build --output-on-failure
