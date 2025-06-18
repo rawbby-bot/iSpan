@@ -1,15 +1,15 @@
 # .github/workflows/intel-openmpi.yml
+name: Build with Intel oneAPI & OpenMPI
+
 on:
-  pull_request:        # run on every PR event :contentReference[oaicite:0]{index=0}
+  pull_request:      # run on every PR event :contentReference[oaicite:5]{index=5}
   push:
     branches:
-      - main          # and on pushes to main :contentReference[oaicite:1]{index=1}
-
-name: Build with Intel oneAPI & OpenMPI
+      - main        # and on pushes to main :contentReference[oaicite:6]{index=6}
 
 jobs:
   build:
-    runs-on: ubuntu-latest  # has ~21 GB free by default :contentReference[oaicite:2]{index=2}
+    runs-on: ubuntu-latest  # ~21 GB free by default :contentReference[oaicite:7]{index=7}
 
     steps:
       - name: Checkout repository
@@ -22,12 +22,12 @@ jobs:
         run: |
           wget -qO- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB \
             | gpg --dearmor \
-            | sudo tee /usr/share/keyrings/oneapi-archive-keyring.gpg > /dev/null  :contentReference[oaicite:3]{index=3}
+            | sudo tee /usr/share/keyrings/oneapi-archive-keyring.gpg > /dev/null  :contentReference[oaicite:8]{index=8}
 
       - name: Add Intel oneAPI APT source
         run: |
           echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] https://apt.repos.intel.com/oneapi all main" \
-            | sudo tee /etc/apt/sources.list.d/oneapi.list  :contentReference[oaicite:4]{index=4}
+            | sudo tee /etc/apt/sources.list.d/oneapi.list
 
       - name: Update & install Intel oneAPI compilers & MPI
         run: |
@@ -35,21 +35,19 @@ jobs:
           sudo apt-get install -y \
             intel-oneapi-compiler-dpcpp-cpp \
             intel-oneapi-compiler-fortran \
-            intel-oneapi-mpi-openmpi  :contentReference[oaicite:5]{index=5}
-
-      - name: Install system OpenMPI
-        run: sudo apt-get install -y libopenmpi-dev openmpi-bin  :contentReference[oaicite:6]{index=6}
+            intel-oneapi-mpi-devel \
+            libopenmpi-dev \
+            openmpi-bin  :contentReference[oaicite:9]{index=9}
 
       - name: Source Intel oneAPI environment
         shell: bash
-        run: |
-          source /opt/intel/oneapi/setvars.sh --force  :contentReference[oaicite:7]{index=7}
+        run: source /opt/intel/oneapi/setvars.sh --force
 
       - name: Configure & Build with CMake
         shell: bash
         run: |
-          source /optintel/oneapi/setvars.sh --force
-          export OMPI_CC=icx OMPI_CXX=icpx OMPI_FC=ifx  :contentReference[oaicite:8]{index=8}
+          source /opt/intel/oneapi/setvars.sh --force
+          export OMPI_CC=icx OMPI_CXX=icpx OMPI_FC=ifx
           mkdir -p build && cd build
           cmake .. \
             -DCMAKE_C_COMPILER=mpicc \
