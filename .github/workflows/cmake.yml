@@ -1,65 +1,55 @@
 # .github/workflows/intel-openmpi.yml
-name: Build with Intel oneAPI & OpenMPI
-
 on:
-  pull_request:       # run on every PR event
+  pull_request:        # run on every PR event :contentReference[oaicite:0]{index=0}
   push:
     branches:
-      - main         # and on pushes to main
+      - main          # and on pushes to main :contentReference[oaicite:1]{index=1}
+
+name: Build with Intel oneAPI & OpenMPI
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest  # has ~21 GB free by default :contentReference[oaicite:2]{index=2}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Prepare APT keyrings directory
-        run: sudo mkdir -p /etc/apt/keyrings
+      - name: Create keyring directory
+        run: sudo mkdir -p /usr/share/keyrings
 
-      - name: Add Intel oneAPI GPG key
+      - name: Download & dearmor Intel GPG key
         run: |
-          curl -fsSL https://apt.repos.intel.com/oneapi/gpgkey \
+          wget -qO- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB \
             | gpg --dearmor \
-            | sudo tee /etc/apt/keyrings/intel-oneapi.gpg > /dev/null
+            | sudo tee /usr/share/keyrings/oneapi-archive-keyring.gpg > /dev/null  :contentReference[oaicite:3]{index=3}
 
       - name: Add Intel oneAPI APT source
         run: |
-          echo "Types: deb" \
-            | sudo tee /etc/apt/sources.list.d/intel-oneapi.sources
-          echo "URIs: https://apt.repos.intel.com/oneapi" \
-            | sudo tee -a /etc/apt/sources.list.d/intel-oneapi.sources
-          echo "Suites: all" \
-            | sudo tee -a /etc/apt/sources.list.d/intel-oneapi.sources
-          echo "Components: main" \
-            | sudo tee -a /etc/apt/sources.list.d/intel-oneapi.sources
-          echo "Signed-By: /etc/apt/keyrings/intel-oneapi.gpg" \
-            | sudo tee -a /etc/apt/sources.list.d/intel-oneapi.sources
+          echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] https://apt.repos.intel.com/oneapi all main" \
+            | sudo tee /etc/apt/sources.list.d/oneapi.list  :contentReference[oaicite:4]{index=4}
 
-      - name: Install Intel oneAPI compilers & MPI
+      - name: Update & install Intel oneAPI compilers & MPI
         run: |
           sudo apt-get update
           sudo apt-get install -y \
             intel-oneapi-compiler-dpcpp-cpp \
             intel-oneapi-compiler-fortran \
-            intel-oneapi-mpi-openmpi
+            intel-oneapi-mpi-openmpi  :contentReference[oaicite:5]{index=5}
 
       - name: Install system OpenMPI
-        run: sudo apt-get install -y libopenmpi-dev openmpi-bin
+        run: sudo apt-get install -y libopenmpi-dev openmpi-bin  :contentReference[oaicite:6]{index=6}
 
       - name: Source Intel oneAPI environment
         shell: bash
         run: |
-          source /opt/intel/oneapi/setvars.sh --force
+          source /opt/intel/oneapi/setvars.sh --force  :contentReference[oaicite:7]{index=7}
 
       - name: Configure & Build with CMake
         shell: bash
         run: |
-          source /opt/intel/oneapi/setvars.sh --force
-          export OMPI_CC=icx
-          export OMPI_CXX=icpx
-          export OMPI_FC=ifx
+          source /optintel/oneapi/setvars.sh --force
+          export OMPI_CC=icx OMPI_CXX=icpx OMPI_FC=ifx  :contentReference[oaicite:8]{index=8}
           mkdir -p build && cd build
           cmake .. \
             -DCMAKE_C_COMPILER=mpicc \
