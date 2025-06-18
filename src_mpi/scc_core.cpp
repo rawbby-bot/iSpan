@@ -41,14 +41,9 @@ scc_detection(
   if (DEBUG)
     printf("vert_count = %lu, edge_count = %ld, avg_degree = %.3lf\n", vert_count, edge_count, avg_degree);
 
-  long_t* fw_beg_pos = g->fw_beg_pos;
-  vertex_t* fw_csr = g->fw_csr;
-  long_t* bw_beg_pos = g->bw_beg_pos;
-  vertex_t* bw_csr = g->bw_csr;
-
   if (VERBOSE) {
-    for (long_t i = fw_beg_pos[vert_count]; i < fw_beg_pos[vert_count + 1]; ++i)
-      printf("%lu\n", fw_csr[i]);
+    for (long_t i = g->fw_beg_pos[vert_count]; i < g->fw_beg_pos[vert_count + 1]; ++i)
+      printf("%lu\n", g->fw_csr[i]);
   }
 
   std::vector<index_t> max_pivot_list(thread_count);
@@ -154,8 +149,8 @@ scc_detection(
     index_t trim_times = 1;
 
     trim_1_first(scc_id,
-                 fw_beg_pos,
-                 bw_beg_pos,
+                 g->fw_beg_pos,
+                 g->bw_beg_pos,
                  vert_beg,
                  vert_end);
     std::cout << tid << ",Computing size_1_first cost," << (wtime() - time) * 1000 << " ms\n";
@@ -178,12 +173,12 @@ scc_detection(
 
     time = wtime();
     vertex_t root = pivot_selection(scc_id,
-                                    fw_beg_pos,
-                                    bw_beg_pos,
+                                    g->fw_beg_pos,
+                                    g->bw_beg_pos,
                                     0,
                                     vert_count,
-                                    fw_csr,
-                                    bw_csr,
+                                    g->fw_csr,
+                                    g->bw_csr,
                                     max_pivot_list,
                                     max_degree_list,
                                     pid,
@@ -193,13 +188,13 @@ scc_detection(
 
     time = wtime();
     fw_bfs(scc_id,
-           fw_beg_pos,
-           bw_beg_pos,
+           g->fw_beg_pos,
+           g->bw_beg_pos,
 
            vert_beg,
            vert_end,
-           fw_csr,
-           bw_csr,
+           g->fw_csr,
+           g->bw_csr,
            fw_sa,
            front_comm,
            work_comm,
@@ -225,12 +220,12 @@ scc_detection(
 
     time = wtime();
     bw_bfs(scc_id,
-           fw_beg_pos,
-           bw_beg_pos,
+           g->fw_beg_pos,
+           g->bw_beg_pos,
            vert_beg,
            vert_end,
-           fw_csr,
-           bw_csr,
+           g->fw_csr,
+           g->bw_csr,
            fw_sa,
            bw_sa,
            front_comm,
@@ -255,12 +250,12 @@ scc_detection(
     time = wtime();
 
     trim_1_normal(scc_id,
-                  fw_beg_pos,
-                  bw_beg_pos,
+                  g->fw_beg_pos,
+                  g->bw_beg_pos,
                   vert_beg,
                   vert_end,
-                  fw_csr,
-                  bw_csr);
+                  g->fw_csr,
+                  g->bw_csr);
 
     if (tid == 0) {
       time_size_1 += wtime() - time;
@@ -268,12 +263,12 @@ scc_detection(
 
     time = wtime();
     trim_1_normal(scc_id,
-                  fw_beg_pos,
-                  bw_beg_pos,
+                  g->fw_beg_pos,
+                  g->bw_beg_pos,
                   vert_beg,
                   vert_end,
-                  fw_csr,
-                  bw_csr);
+                  g->fw_csr,
+                  g->bw_csr);
 
     time_size_1 += wtime() - time;
 
@@ -293,10 +288,10 @@ scc_detection(
                small_queue,
                vert_beg,
                vert_end,
-               fw_beg_pos,
-               fw_csr,
-               bw_beg_pos,
-               bw_csr,
+               g->fw_beg_pos,
+               g->fw_csr,
+               g->bw_beg_pos,
+               g->bw_csr,
                sub_fw_beg,
                sub_fw_csr,
                sub_bw_beg,
