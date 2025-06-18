@@ -21,7 +21,7 @@ fsize(const char* filename)
 int
 main(int argc, char** argv)
 {
-  int fd, i;
+  int fd;
   char* ss_head;
   char* ss;
 
@@ -80,19 +80,19 @@ main(int argc, char** argv)
 
   int fd4 = open("bw_adjacent.bin", O_CREAT | O_RDWR, 00666);
   ftruncate(fd4, edge_count * sizeof(vertex_t));
-  vertex_t* adj = (vertex_t*)mmap(NULL, edge_count * sizeof(vertex_t), PROT_READ | PROT_WRITE, MAP_SHARED, fd4, 0);
+  auto* adj = (vertex_t*)mmap(NULL, edge_count * sizeof(vertex_t), PROT_READ | PROT_WRITE, MAP_SHARED, fd4, 0);
 
   int fd5 = open("bw_head.bin", O_CREAT | O_RDWR, 00666);
   ftruncate(fd5, edge_count * sizeof(vertex_t));
-  vertex_t* head = (vertex_t*)mmap(NULL, edge_count * sizeof(vertex_t), PROT_READ | PROT_WRITE, MAP_SHARED, fd5, 0);
+  auto* head = (vertex_t*)mmap(NULL, edge_count * sizeof(vertex_t), PROT_READ | PROT_WRITE, MAP_SHARED, fd5, 0);
 
   int fd2 = open("in_degree.bin", O_CREAT | O_RDWR, 00666);
   ftruncate(fd2, vert_count * sizeof(index_t));
-  index_t* degree = (index_t*)mmap(NULL, vert_count * sizeof(index_t), PROT_READ | PROT_WRITE, MAP_SHARED, fd2, 0);
+  auto* degree = (index_t*)mmap(NULL, vert_count * sizeof(index_t), PROT_READ | PROT_WRITE, MAP_SHARED, fd2, 0);
 
   int fd3 = open("bw_begin.bin", O_CREAT | O_RDWR, 00666);
   ftruncate(fd3, (vert_count + 1) * sizeof(index_t));
-  index_t* begin = (index_t*)mmap(NULL, (vert_count + 1) * sizeof(index_t), PROT_READ | PROT_WRITE, MAP_SHARED, fd3, 0);
+  auto* begin = (index_t*)mmap(NULL, (vert_count + 1) * sizeof(index_t), PROT_READ | PROT_WRITE, MAP_SHARED, fd3, 0);
 
   for (int i = 0; i < vert_count; i++) {
     degree[i] = 0;

@@ -1,11 +1,7 @@
-#ifndef __GRAPH_H__
-#define __GRAPH_H__
+#pragma once
+
 #include "util.h"
-#include "wtime.h"
-#include <assert.h>
-#include <iostream>
-#include <stdio.h>
-#include <string.h>
+
 class graph
 {
 public:
@@ -20,8 +16,8 @@ public:
   index_t src_count;
 
 public:
-  graph(){};
-  ~graph(){};
+  graph()= default;
+  ~graph()= default;
   graph(const char* fw_beg_file,
         const char* fw_csr_file,
         const char* bw_beg_file,
@@ -29,4 +25,3 @@ public:
   void gen_src() {};
   void groupby() {};
 };
-#endif

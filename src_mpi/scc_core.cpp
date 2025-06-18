@@ -13,7 +13,6 @@
 #include <mpi.h>
 #include <omp.h>
 #include <sys/mman.h>
-#include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include <unordered_map>
@@ -25,9 +24,6 @@ void
 scc_detection(
   const graph* g,
   int alpha,
-  int beta,
-  int gamma,
-  double theta,
   index_t thread_count,
   std::vector<double>& avg_time,
   int world_rank,
@@ -37,30 +33,16 @@ scc_detection(
 {
   const index_t vert_count = g->vert_count;
   const long_t edge_count = g->edge_count;
-  const double avg_degree = edge_count * 1.0 / vert_count;
-  if (DEBUG)
-    printf("vert_count = %lu, edge_count = %ld, avg_degree = %.3lf\n", vert_count, edge_count, avg_degree);
-
-  if (VERBOSE) {
-    for (long_t i = g->fw_beg_pos[vert_count]; i < g->fw_beg_pos[vert_count + 1]; ++i)
-      printf("%lu\n", g->fw_csr[i]);
-  }
 
   std::vector<index_t> max_pivot_list(thread_count);
   std::vector<index_t> max_degree_list(thread_count);
 
   std::vector<index_t> thread_bin(thread_count);
 
-  index_t* front_comm = (index_t*)calloc(thread_count, sizeof(index_t));
-
-  long_t* work_comm = (long_t*)calloc(thread_count, sizeof(long_t));
-
-  index_t* size_bw_beg = (index_t*)calloc(thread_count + 1, sizeof(index_t));
-  index_t* size_bw_csr = (index_t*)calloc(thread_count + 1, sizeof(index_t));
+  std::vector<index_t> front_comm(world_size);
+  std::vector<long_t> work_comm(world_size);
 
   std::vector<bool> color_change(thread_count);
-
-  vertex_t wcc_fq_size = 0;
 
   const index_t pid = world_rank;
   const index_t tid = pid;
@@ -75,21 +57,16 @@ scc_detection(
   index_t virtual_count = t * p_count * 32;
 
   index_t vert_beg = pid * step;
-  index_t vert_end = (pid == p_count - 1 ? vert_count : vert_beg + step);
-  unsigned int* sa_compress = (unsigned int*)calloc(s, sizeof(unsigned int));
+  index_t vert_end = pid == p_count - 1 ? vert_count : vert_beg + step;
+  auto* sa_compress = static_cast<unsigned int*>(calloc(s, sizeof(unsigned int)));
 
   std::vector<index_t> small_queue(virtual_count + 1);
   std::vector<index_t> wcc_fq(virtual_count + 1);
-  vertex_t* vert_map = (vertex_t*)calloc(vert_count + 1, sizeof(vertex_t));
-  vertex_t* sub_fw_beg = (vertex_t*)calloc(vert_count + 1, sizeof(vertex_t));
-  vertex_t* sub_fw_csr = (vertex_t*)calloc(edge_count + 1, sizeof(vertex_t));
-  vertex_t* sub_bw_beg = (vertex_t*)calloc(vert_count + 1, sizeof(vertex_t));
-  vertex_t* sub_bw_csr = (vertex_t*)calloc(edge_count + 1, sizeof(vertex_t));
-
-  vertex_t* buf_fw_beg = (vertex_t*)calloc(vert_count / 10 + 1, sizeof(vertex_t));
-  vertex_t* buf_fw_csr = (vertex_t*)calloc(vert_count + 1, sizeof(vertex_t));
-  vertex_t* buf_bw_beg = (vertex_t*)calloc(vert_count / 10 + 1, sizeof(vertex_t));
-  vertex_t* buf_bw_csr = (vertex_t*)calloc(vert_count + 1, sizeof(vertex_t));
+  auto vert_map = static_cast<vertex_t*>(calloc(vert_count + 1, sizeof(vertex_t)));
+  auto sub_fw_beg = static_cast<vertex_t*>(calloc(vert_count + 1, sizeof(vertex_t)));
+  auto sub_fw_csr = static_cast<vertex_t*>(calloc(edge_count + 1, sizeof(vertex_t)));
+  auto sub_bw_beg = static_cast<vertex_t*>(calloc(vert_count + 1, sizeof(vertex_t)));
+  auto sub_bw_csr = static_cast<vertex_t*>(calloc(edge_count + 1, sizeof(vertex_t)));
 
   depth_t* fw_sa;
   depth_t* bw_sa;
@@ -99,11 +76,11 @@ scc_detection(
 
   if (posix_memalign((void**)&bw_sa, getpagesize(), sizeof(depth_t) * (virtual_count + 1)))
     perror("posix_memalign");
-  vertex_t* fq_comm = (vertex_t*)calloc(virtual_count + 1, sizeof(vertex_t));
-  vertex_t* scc_id = new vertex_t[virtual_count + 1];
-  vertex_t* scc_id_mice = (vertex_t*)calloc(virtual_count + 1, sizeof(vertex_t));
-  vertex_t* fw_sa_temp = (vertex_t*)calloc(virtual_count + 1, sizeof(vertex_t));
-  vertex_t* color = (vertex_t*)calloc(virtual_count + 1, sizeof(vertex_t));
+  auto fq_comm = static_cast<vertex_t*>(calloc(virtual_count + 1, sizeof(vertex_t)));
+  auto scc_id = new vertex_t[virtual_count + 1];
+  auto scc_id_mice = static_cast<vertex_t*>(calloc(virtual_count + 1, sizeof(vertex_t)));
+  auto fw_sa_temp = static_cast<vertex_t*>(calloc(virtual_count + 1, sizeof(vertex_t)));
+  auto color = static_cast<vertex_t*>(calloc(virtual_count + 1, sizeof(vertex_t)));
 
   for (long_t i = 0; i < virtual_count + 1; ++i) {
 
@@ -114,11 +91,6 @@ scc_detection(
     scc_id_mice[i] = -1;
   }
 
-  vertex_t vertex_fw = 0;
-  vertex_t vertex_bw = 0;
-  index_t size_3_1 = 0;
-  index_t size_3_2 = 0;
-  bool changed = false;
   double start_time = wtime();
   double end_time;
 
@@ -131,22 +103,14 @@ scc_detection(
     double time_size_2;
     double time_size_3;
     double time_gfq;
-    double time_color_1;
-    double time_color_2;
-    double time_color;
     double pivot_time;
-    double time_color_init;
     double time_wcc;
     double time_mice_fw_bw;
-    const vertex_t upper_bound = vert_count / thread_count * 5;
-    vertex_t* thread_queue = new vertex_t[upper_bound];
 
     double time_comm;
 
     MPI_Barrier(MPI_COMM_WORLD);
     double time = wtime();
-
-    index_t trim_times = 1;
 
     trim_1_first(scc_id,
                  g->fw_beg_pos,
@@ -197,12 +161,9 @@ scc_detection(
            g->bw_csr,
            fw_sa,
            front_comm,
-           work_comm,
            root,
            tid,
-           thread_count,
            alpha,
-           beta,
            edge_count,
            vert_count,
            world_size,
@@ -232,9 +193,7 @@ scc_detection(
            work_comm,
            root,
            tid,
-           thread_count,
            alpha,
-           beta,
            edge_count,
            vert_count,
            world_size,
@@ -286,8 +245,6 @@ scc_detection(
     gfq_origin(vert_count,
                scc_id,
                small_queue,
-               vert_beg,
-               vert_end,
                g->fw_beg_pos,
                g->fw_csr,
                g->bw_beg_pos,
@@ -299,13 +256,12 @@ scc_detection(
                front_comm,
                work_comm,
                world_rank,
-               world_size,
                vert_map);
 
     vertex_t sub_v_count = front_comm[world_rank];
-    vertex_t sub_e_count = work_comm[world_rank];
 
     if (sub_v_count > 0) {
+      vertex_t wcc_fq_size = 0;
       step = sub_v_count / p_count;
       if (sub_v_count % p_count != 0)
         step += 1;
@@ -352,7 +308,6 @@ scc_detection(
                  fw_sa_temp,
                  world_rank,
                  world_size,
-                 small_queue.data(),
                  sub_v_count,
                  wcc_fq,
                  wcc_fq_size);
@@ -404,14 +359,12 @@ scc_detection(
   }
   end_time = wtime() - start_time;
   avg_time[3] += end_time;
-  if (DEBUG)
-    printf("total time, %.3lf\n", end_time * 1000);
 
   get_scc_result(scc_id, vert_count);
 
   if (assignment) {
     std::unordered_map<vertex_t, std::vector<vertex_t>> scc_components;
-    for (vertex_t i = 0; i <= vert_count; ++i) {
+    for (vertex_t i = 0; i < vert_count; ++i) {
       const auto repr = scc_id[i] == -1 ? i : scc_id[i];
       scc_components[repr].push_back(i);
     }

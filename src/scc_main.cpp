@@ -25,7 +25,7 @@ main(int args, char** argv)
   const index_t run_times = atoi(argv[10]);
   printf("Thread = %lu, alpha = %d, beta = %d, gamma = %d, theta = %g, run_times = %lu\n", thread_count, alpha, beta, gamma, theta, run_times);
 
-  double* avg_time = new double[15];
+  auto* avg_time = new double[15];
 
   graph* g = graph_load(fw_beg_file,
                         fw_csr_file,

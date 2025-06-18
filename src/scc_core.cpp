@@ -49,12 +49,12 @@ scc_detection(
       printf("%lu\n", fw_csr[i]);
   }
 
-  index_t* scc_id = new index_t[vert_count + 1];
+  auto* scc_id = new index_t[vert_count + 1];
 
-  index_t* color = new index_t[vert_count + 1];
+  auto* color = new index_t[vert_count + 1];
 
-  index_t* max_pivot_list = new index_t[thread_count];
-  index_t* max_degree_list = new index_t[thread_count];
+  auto* max_pivot_list = new index_t[thread_count];
+  auto* max_degree_list = new index_t[thread_count];
 
   depth_t* fw_sa;
   depth_t* bw_sa;
@@ -65,16 +65,16 @@ scc_detection(
   if (posix_memalign((void**)&bw_sa, getpagesize(), sizeof(depth_t) * (vert_count + 1)))
     perror("posix_memalign");
 
-  index_t* small_queue = new index_t[vert_count + 1];
-  index_t* temp_queue = new index_t[vert_count + 1];
-  index_t* inter_queue = new index_t[vert_count + 1];
-  index_t* wcc_fq = new index_t[vert_count + 1];
+  auto* small_queue = new index_t[vert_count + 1];
+  auto* temp_queue = new index_t[vert_count + 1];
+  auto* inter_queue = new index_t[vert_count + 1];
+  auto* wcc_fq = new index_t[vert_count + 1];
 
-  index_t* thread_bin = new index_t[thread_count];
-  index_t* prefix_sum = new index_t[thread_count];
+  auto* thread_bin = new index_t[thread_count];
+  auto* prefix_sum = new index_t[thread_count];
 
-  index_t* front_comm = new index_t[thread_count];
-  index_t* work_comm = new index_t[thread_count];
+  auto* front_comm = new index_t[thread_count];
+  auto* work_comm = new index_t[thread_count];
   bool* color_change = new bool[thread_count];
   memset(color_change, 0, sizeof(bool) * thread_count);
 
@@ -117,15 +117,11 @@ num_threads(thread_count)
     double time_size_2;
     double time_size_3;
     double time_gfq;
-    double time_color_1;
-    double time_color_2;
-    double time_color;
     double pivot_time;
-    double time_color_init;
     double time_wcc;
     double time_mice_fw_bw;
     const vertex_t upper_bound = vert_count / thread_count * 5;
-    vertex_t* thread_queue = new vertex_t[upper_bound];
+    auto* thread_queue = new vertex_t[upper_bound];
 
     double time = wtime();
 

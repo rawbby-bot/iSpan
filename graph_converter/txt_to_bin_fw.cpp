@@ -21,7 +21,7 @@ fsize(const char* filename)
 int
 main(int argc, char** argv)
 {
-  int fd, i;
+  int fd;
   char* ss_head;
   char* ss;
 
@@ -71,34 +71,27 @@ main(int argc, char** argv)
   }
   edge_count /= 2;
   vert_count = v_max - v_min + 1;
-  // std::cout << "edge count: " << edge_count << std::endl;
-  // std::cout << "max vertex id: " << v_max << std::endl;
-  // std::cout << "min vertex id: " << v_min << std::endl;
-
-  // std::cout << "edge count: " << edge_count << std::endl;
-  // std::cout << "vert count: " << vert_count << std::endl;
 
   int fd4 = open("fw_adjacent.bin", O_CREAT | O_RDWR, 00666);
   ftruncate(fd4, edge_count * sizeof(vertex_t));
-  vertex_t* adj = (vertex_t*)mmap(NULL, edge_count * sizeof(vertex_t), PROT_READ | PROT_WRITE, MAP_SHARED, fd4, 0);
+  auto* adj = (vertex_t*)mmap(NULL, edge_count * sizeof(vertex_t), PROT_READ | PROT_WRITE, MAP_SHARED, fd4, 0);
 
   int fd5 = open("fw_head.bin", O_CREAT | O_RDWR, 00666);
   ftruncate(fd5, edge_count * sizeof(vertex_t));
-  vertex_t* head = (vertex_t*)mmap(NULL, edge_count * sizeof(vertex_t), PROT_READ | PROT_WRITE, MAP_SHARED, fd5, 0);
+  auto* head = (vertex_t*)mmap(NULL, edge_count * sizeof(vertex_t), PROT_READ | PROT_WRITE, MAP_SHARED, fd5, 0);
 
   int fd2 = open("out_degree.bin", O_CREAT | O_RDWR, 00666);
   ftruncate(fd2, vert_count * sizeof(index_t));
-  index_t* degree = (index_t*)mmap(NULL, vert_count * sizeof(index_t), PROT_READ | PROT_WRITE, MAP_SHARED, fd2, 0);
+  auto* degree = (index_t*)mmap(NULL, vert_count * sizeof(index_t), PROT_READ | PROT_WRITE, MAP_SHARED, fd2, 0);
 
   int fd3 = open("fw_begin.bin", O_CREAT | O_RDWR, 00666);
   ftruncate(fd3, (vert_count + 1) * sizeof(index_t));
-  index_t* begin = (index_t*)mmap(NULL, (vert_count + 1) * sizeof(index_t), PROT_READ | PROT_WRITE, MAP_SHARED, fd3, 0);
+  auto* begin = (index_t*)mmap(NULL, (vert_count + 1) * sizeof(index_t), PROT_READ | PROT_WRITE, MAP_SHARED, fd3, 0);
 
   for (int i = 0; i < vert_count; i++) {
     degree[i] = 0;
   }
   vertex_t index;
-  vertex_t index_a;
   size_t offset = 0;
   curr = 0;
   next = 0;
@@ -111,10 +104,7 @@ main(int argc, char** argv)
     while ((ss[next] == ' ') || (ss[next] == '\n') || (ss[next] == '\t')) {
       next++;
     }
-    curr = next;
 
-    char* sss1 = ss + curr;
-    index_a = atoi(sss1) - v_min;
     while ((ss[next] != ' ') && (ss[next] != '\n') && (ss[next] != '\t')) {
       next++;
     }

@@ -1,7 +1,6 @@
 #ifndef FW_BW_H
 #define FW_BW_H
 
-#include "graph.h"
 #include "util.h"
 #include "wtime.h"
 #include <iostream>
@@ -10,21 +9,18 @@
 
 inline void
 fw_bfs(
-  index_t* scc_id,
-  long_t* fw_beg_pos,
-  long_t* bw_beg_pos,
+  const index_t* scc_id,
+  const long_t* fw_beg_pos,
+  const long_t* bw_beg_pos,
   index_t vert_beg,
   index_t vert_end,
-  vertex_t* fw_csr,
-  vertex_t* bw_csr,
+  const vertex_t* fw_csr,
+  const vertex_t* bw_csr,
   depth_t* fw_sa,
-  index_t* front_comm,
-  long_t* work_comm,
+  std::vector<index_t>& front_comm,
   vertex_t root,
   index_t tid,
-  index_t thread_count,
   double alpha,
-  double beta,
   long_t edge_count,
   vertex_t vert_count,
   vertex_t world_size,
@@ -46,22 +42,19 @@ fw_bfs(
     double ltm = wtime();
     double sync_time = 0.0;
     index_t front_count = 0;
-    signed char is_done = 0;
     long_t my_work_next = 0;
-    index_t my_work_curr = 0;
 
     if (is_top_down) {
       std::cout << vert_beg << "," << vert_end << "\n";
       for (vertex_t vert_id = vert_beg; vert_id < vert_end; vert_id++) {
         if (scc_id[vert_id] == 0 && fw_sa[vert_id] == (level)) {
-          long_t my_beg = fw_beg_pos[vert_id];
-          long_t my_end = fw_beg_pos[vert_id + 1];
 
-          for (; my_beg < my_end; my_beg++) {
-            vertex_t nebr = fw_csr[my_beg];
+          const auto my_end = fw_beg_pos[vert_id + 1];
+          for (auto my_beg = fw_beg_pos[vert_id]; my_beg < my_end; my_beg++) {
+            const vertex_t nebr = fw_csr[my_beg];
             if (scc_id[nebr] == 0 && fw_sa[nebr] == -1) {
               fw_sa[nebr] = level + 1;
-              sa_compress[nebr / 32] |= ((index_t)1 << ((index_t)nebr % 32));
+              sa_compress[nebr / 32] |= static_cast<index_t>(1) << nebr % 32;
 
               my_work_next += fw_beg_pos[nebr + 1] - fw_beg_pos[nebr];
               fq_comm[front_count] = nebr;
@@ -74,16 +67,16 @@ fw_bfs(
     } else if (!is_top_down_queue) {
       for (vertex_t vert_id = vert_beg; vert_id < vert_end; vert_id++) {
         if (scc_id[vert_id] == 0 && fw_sa[vert_id] == -1) {
-          long_t my_beg = bw_beg_pos[vert_id];
-          long_t my_end = bw_beg_pos[vert_id + 1];
+          auto my_beg = bw_beg_pos[vert_id];
+          const auto my_end = bw_beg_pos[vert_id + 1];
           my_work_next += my_end - my_beg;
 
           for (; my_beg < my_end; my_beg++) {
-            vertex_t nebr = bw_csr[my_beg];
+            const auto nebr = bw_csr[my_beg];
             if (scc_id[vert_id] == 0 && fw_sa[nebr] != -1) {
               fw_sa[vert_id] = level + 1;
               fq_comm[front_count] = vert_id;
-              sa_compress[vert_id / 32] |= ((index_t)1 << ((index_t)vert_id % 32));
+              sa_compress[vert_id / 32] |= static_cast<index_t>(1) << vert_id % 32;
               front_count++;
               break;
             }
@@ -105,11 +98,10 @@ fw_bfs(
         vertex_t temp_v = q[head++];
         if (head == queue_size)
           head = 0;
-        long_t my_beg = fw_beg_pos[temp_v];
-        long_t my_end = fw_beg_pos[temp_v + 1];
 
-        for (; my_beg < my_end; ++my_beg) {
-          index_t w = fw_csr[my_beg];
+        const auto my_end = fw_beg_pos[temp_v + 1];
+        for (auto my_beg = fw_beg_pos[temp_v]; my_beg < my_end; ++my_beg) {
+          const index_t w = fw_csr[my_beg];
 
           if (scc_id[w] == 0 && fw_sa[w] == -1) {
             q[tail++] = w;
@@ -120,7 +112,7 @@ fw_bfs(
         }
       }
 
-      double temp_time = wtime();
+      const double temp_time = wtime();
       MPI_Allreduce(MPI_IN_PLACE,
                     fw_sa,
                     vert_count,
@@ -214,7 +206,7 @@ fw_bfs(
         }
       } else {
         MPI_Allreduce(MPI_IN_PLACE,
-                      front_comm,
+                      front_comm.data(),
                       world_size,
                       MPI_INT,
                       MPI_MAX,
@@ -260,7 +252,7 @@ fw_bfs(
     }
 
     if (tid == 0)
-      std::cout << "FW_Level-" << (int)level
+      std::cout << "FW_Level-" << static_cast<int>(level)
                 << "," << tid << ","
                 << front_count << " "
                 << sync_time * 1000 << " ms,"
@@ -276,21 +268,19 @@ fw_bfs(
 inline void
 bw_bfs(
   index_t* scc_id,
-  long_t* fw_beg_pos,
-  long_t* bw_beg_pos,
+  const long_t* fw_beg_pos,
+  const long_t* bw_beg_pos,
   index_t vert_beg,
   index_t vert_end,
-  vertex_t* fw_csr,
-  vertex_t* bw_csr,
-  depth_t* fw_sa,
+  const vertex_t* fw_csr,
+  const vertex_t* bw_csr,
+  const depth_t* fw_sa,
   depth_t* bw_sa,
-  index_t* front_comm,
-  long_t* work_comm,
+  std::vector<index_t>& front_comm,
+  std::vector<long_t>& work_comm,
   vertex_t root,
   index_t tid,
-  index_t thread_count,
   double alpha,
-  double beta,
   vertex_t edge_count,
   vertex_t vert_count,
   vertex_t world_size,
@@ -306,16 +296,12 @@ bw_bfs(
   scc_id[root] = 1;
   index_t queue_size = vert_count / 100;
 
-  long_t my_beg = bw_beg_pos[root];
-  long_t my_end = bw_beg_pos[root + 1];
-
   double sync_time_bw = 0;
 
   while (true) {
     double ltm = wtime();
     index_t front_count = 0;
     long_t my_work_next = 0;
-    index_t my_work_curr = 0;
 
     double sync_time = 0.0;
     if (is_top_down) {
@@ -472,7 +458,7 @@ bw_bfs(
         double temp_time = wtime();
 
         MPI_Allreduce(MPI_IN_PLACE,
-                      front_comm,
+                      front_comm.data(),
                       world_size,
                       MPI_INT,
                       MPI_MAX,
@@ -533,22 +519,21 @@ bw_bfs(
 
 inline void
 fw_bfs_fq(
-  index_t* scc_id,
-  index_t* fw_beg_pos,
-  index_t* bw_beg_pos,
+  const index_t* scc_id,
+  const index_t* fw_beg_pos,
+  const index_t* bw_beg_pos,
   index_t vert_beg,
   index_t vert_end,
-  vertex_t* fw_csr,
-  vertex_t* bw_csr,
+  const vertex_t* fw_csr,
+  const vertex_t* bw_csr,
   vertex_t* fw_sa,
-  index_t* vertex_cur,
   index_t* vertex_front,
   vertex_t root,
   index_t tid,
   index_t thread_count,
   double alpha,
   double beta,
-  vertex_t* frontier_queue,
+  const vertex_t* frontier_queue,
   vertex_t fq_size,
   const double avg_degree,
   vertex_t vertex_visited)
@@ -558,11 +543,6 @@ fw_bfs_fq(
   vertex_t root_out_degree = fw_beg_pos[root + 1] - fw_beg_pos[root];
   bool is_top_down = true;
   bool is_top_down_async = false;
-  if (VERBOSE) {
-    if (tid == 0) {
-      printf("out_degree, %lu, limit, %.3lf\n", root_out_degree, alpha * beta * fq_size);
-    }
-  }
   if (root_out_degree < alpha * beta * fq_size) {
     is_top_down_async = true;
   }
@@ -673,21 +653,6 @@ fw_bfs_fq(
     }
     vertex_visited += vertex_frontier;
 
-    if (VERBOSE) {
-      double edge_frontier = (double)vertex_frontier * avg_degree;
-      double edge_remaider = (double)(fq_size - vertex_visited) * avg_degree;
-      if (tid == 0)
-        std::cout << "Level-" << (int)level << " "
-
-                  << vertex_frontier << " "
-                  << fq_size << " "
-                  << (double)(fq_size) / vertex_frontier << " "
-                  << (wtime() - ltm) * 1000 << "ms "
-                  << vertex_visited << " "
-                  << edge_frontier << " "
-                  << edge_remaider << " "
-                  << edge_remaider / edge_frontier << "\n";
-    }
     if (vertex_frontier == 0)
       break;
 
@@ -698,17 +663,9 @@ fw_bfs_fq(
       double edge_remainder = (double)(fq_size - vertex_visited) * avg_degree;
       if ((edge_remainder / alpha) < edge_frontier) {
         is_top_down = false;
-        if (VERBOSE) {
-          if (tid == 0)
-            std::cout << "--->Switch to bottom up\n";
-        }
       }
     } else if (!is_top_down && !is_top_down_queue && (fq_size * 1.0 / beta) > vertex_frontier) {
       is_top_down_queue = true;
-      if (VERBOSE) {
-        if (tid == 0)
-          std::cout << "--->Switch to top down queue\n";
-      }
     }
 #pragma omp barrier
     level++;
@@ -718,36 +675,30 @@ fw_bfs_fq(
 inline void
 bw_bfs_fq(
   index_t* scc_id,
-  index_t* fw_beg_pos,
-  index_t* bw_beg_pos,
+  const index_t* fw_beg_pos,
+  const index_t* bw_beg_pos,
   index_t vert_beg,
   index_t vert_end,
-  vertex_t* fw_csr,
-  vertex_t* bw_csr,
-  vertex_t* fw_sa,
+  const vertex_t* fw_csr,
+  const vertex_t* bw_csr,
+  const vertex_t* fw_sa,
   vertex_t* bw_sa,
-  index_t* vertex_cur,
   index_t* vertex_front,
   vertex_t root,
   index_t tid,
   index_t thread_count,
   double alpha,
   double beta,
-  vertex_t* frontier_queue,
+  const vertex_t* frontier_queue,
   vertex_t fq_size,
   const double avg_degree,
   vertex_t vertex_visited)
 {
   bw_sa[root] = 0;
-  vertex_t root_in_degree = bw_beg_pos[root + 1] - bw_beg_pos[root];
+  const vertex_t root_in_degree = bw_beg_pos[root + 1] - bw_beg_pos[root];
   bool is_top_down = true;
   bool is_top_down_queue = false;
   bool is_top_down_async = false;
-  if (DEBUG) {
-    if (tid == 0) {
-      printf("in_degree, %lu, limit, %.3lf\n", root_in_degree, alpha * beta * fq_size);
-    }
-  }
   if (root_in_degree < alpha * beta * fq_size) {
     is_top_down_async = true;
   }
@@ -851,8 +802,6 @@ bw_bfs_fq(
           }
         }
       }
-      if (!DEBUG)
-        break;
     }
 
     vertex_front[tid] = vertex_frontier;
@@ -865,21 +814,6 @@ bw_bfs_fq(
     }
     vertex_visited += vertex_frontier;
 
-    if (VERBOSE) {
-      double edge_frontier = (double)vertex_frontier * avg_degree;
-      double edge_remaider = (double)(fq_size - vertex_visited) * avg_degree;
-      if (tid == 0)
-        std::cout << "Level-" << (int)level << " "
-
-                  << vertex_frontier << " "
-                  << fq_size << " "
-                  << (double)(fq_size) / vertex_frontier << " "
-                  << (wtime() - ltm) * 1000 << "ms "
-                  << vertex_visited << " "
-                  << edge_frontier << " "
-                  << edge_remaider << " "
-                  << edge_remaider / edge_frontier << "\n";
-    }
     if (vertex_frontier == 0)
       break;
 
@@ -890,17 +824,9 @@ bw_bfs_fq(
       double edge_remainder = (double)(fq_size - vertex_visited) * avg_degree;
       if ((edge_remainder / alpha) < edge_frontier) {
         is_top_down = false;
-        if (VERBOSE) {
-          if (tid == 0)
-            std::cout << "--->Switch to bottom up\n";
-        }
       }
     } else if (!is_top_down && !is_top_down_queue && (fq_size * 1.0 / beta) > vertex_frontier) {
       is_top_down_queue = true;
-      if (VERBOSE) {
-        if (tid == 0)
-          std::cout << "--->Switch to top down queue\n";
-      }
     }
 #pragma omp barrier
     level++;
@@ -933,16 +859,15 @@ process_wcc(
 
 inline void
 mice_fw_bw(
-  color_t* wcc_color,
+  const color_t* wcc_color,
   index_t* scc_id,
-  index_t* sub_fw_beg,
-  index_t* sub_bw_beg,
-  vertex_t* sub_fw_csr,
-  vertex_t* sub_bw_csr,
+  const index_t* sub_fw_beg,
+  const index_t* sub_bw_beg,
+  const vertex_t* sub_fw_csr,
+  const vertex_t* sub_bw_csr,
   vertex_t* fw_sa,
   index_t tid,
   index_t thread_count,
-  vertex_t* frontier_queue,
   vertex_t sub_v_count,
   std::vector<vertex_t>& wcc_fq,
   vertex_t wcc_fq_size)

@@ -14,7 +14,7 @@ main(int args, char** argv)
     exit(-1);
   }
 
-  MPI_Init(NULL, NULL);
+  MPI_Init(nullptr, nullptr);
 
   int world_size;
   MPI_Comm_size(MPI_COMM_WORLD, &world_size);
@@ -29,9 +29,6 @@ main(int args, char** argv)
   const index_t thread_count = world_size;
 
   const int alpha = atof(argv[6]);
-  const int beta = atof(argv[7]);
-  const int gamma = atof(argv[8]);
-  const double theta = atof(argv[9]);
   const index_t run_times = atoi(argv[10]);
 
   std::vector<double> avg_time(15);
@@ -47,9 +44,6 @@ main(int args, char** argv)
     printf("\nRuntime: %lu\n", i);
     scc_detection(g,
                   alpha,
-                  beta,
-                  gamma,
-                  theta,
                   thread_count,
                   avg_time,
                   world_rank,

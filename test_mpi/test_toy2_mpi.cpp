@@ -87,7 +87,7 @@ main()
   if (!world_rank) {
 
     const auto assignment = prepare_assignment(&g);
-    scc_detection(&g, 30, 200, 10, 0.01, 1, avg_time, world_rank, world_size, 1, assignment.get());
+    scc_detection(&g, 30, 10, avg_time, world_rank, world_size, 1, assignment.get());
 
     ASSERT(assignment[0] == 0);
     ASSERT(assignment[1] == 1);
@@ -99,7 +99,7 @@ main()
 
   } else {
 
-    scc_detection(&g, 30, 200, 10, 0.01, 1, avg_time, world_rank, world_size, 1, nullptr);
+    scc_detection(&g, 30, 10, avg_time, world_rank, world_size, 1, nullptr);
   }
 
   MPI_Finalize();

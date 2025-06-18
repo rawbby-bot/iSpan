@@ -10,8 +10,8 @@
 inline void
 trim_1_first(
   index_t* scc_id,
-  long_t* fw_beg_pos,
-  long_t* bw_beg_pos,
+  const long_t* fw_beg_pos,
+  const long_t* bw_beg_pos,
   index_t vert_beg,
   index_t vert_end)
 {
@@ -31,8 +31,8 @@ trim_1_first(
 inline void
 trim_1_first_gfq(
   index_t* scc_id,
-  index_t* fw_beg_pos,
-  index_t* bw_beg_pos,
+  const index_t* fw_beg_pos,
+  const index_t* bw_beg_pos,
   index_t vert_beg,
   index_t vert_end,
   const index_t thread_count,
@@ -78,12 +78,12 @@ trim_1_first_gfq(
 inline void
 trim_1_normal(
   index_t* scc_id,
-  long_t* fw_beg_pos,
-  long_t* bw_beg_pos,
+  const long_t* fw_beg_pos,
+  const long_t* bw_beg_pos,
   index_t vert_beg,
   index_t vert_end,
-  vertex_t* fw_csr,
-  vertex_t* bw_csr)
+  const vertex_t* fw_csr,
+  const vertex_t* bw_csr)
 {
   for (vertex_t vert_id = vert_beg; vert_id < vert_end; ++vert_id) {
     if (scc_id[vert_id] == 0) {
@@ -121,13 +121,13 @@ trim_1_normal(
 inline void
 trim_1_from_fq(
   index_t* scc_id,
-  index_t* fw_beg_pos,
-  index_t* bw_beg_pos,
+  const index_t* fw_beg_pos,
+  const index_t* bw_beg_pos,
   index_t vert_beg,
   index_t vert_end,
-  vertex_t* fw_csr,
-  vertex_t* bw_csr,
-  index_t* small_queue)
+  const vertex_t* fw_csr,
+  const vertex_t* bw_csr,
+  const index_t* small_queue)
 {
   for (vertex_t fq_vert_id = vert_beg; fq_vert_id < vert_end; ++fq_vert_id) {
     vertex_t vert_id = small_queue[fq_vert_id];
@@ -166,12 +166,12 @@ trim_1_from_fq(
 inline void
 trim_1_normal_only_size(
   index_t* scc_id,
-  index_t* fw_beg_pos,
-  index_t* bw_beg_pos,
+  const index_t* fw_beg_pos,
+  const index_t* bw_beg_pos,
   index_t vert_beg,
   index_t vert_end,
-  vertex_t* fw_csr,
-  vertex_t* bw_csr,
+  const vertex_t* fw_csr,
+  const vertex_t* bw_csr,
   const index_t thread_count,
   index_t* thread_bin,
   index_t* prefix_sum,
@@ -226,12 +226,12 @@ trim_1_normal_only_size(
 inline void
 trim_1_normal_gfq(
   index_t* scc_id,
-  index_t* fw_beg_pos,
-  index_t* bw_beg_pos,
+  const index_t* fw_beg_pos,
+  const index_t* bw_beg_pos,
   index_t vert_beg,
   index_t vert_end,
-  vertex_t* fw_csr,
-  vertex_t* bw_csr,
+  const vertex_t* fw_csr,
+  const vertex_t* bw_csr,
   const index_t thread_count,
   index_t* frontier_queue,
   index_t* thread_bin,
@@ -294,12 +294,12 @@ trim_1_normal_gfq(
 inline void
 trim_1_from_fq_gfq(
   index_t* scc_id,
-  index_t* fw_beg_pos,
-  index_t* bw_beg_pos,
+  const index_t* fw_beg_pos,
+  const index_t* bw_beg_pos,
   index_t vert_beg,
   index_t vert_end,
-  vertex_t* fw_csr,
-  vertex_t* bw_csr,
+  const vertex_t* fw_csr,
+  const vertex_t* bw_csr,
   const index_t thread_count,
   index_t* frontier_queue,
   index_t* thread_bin,
@@ -359,12 +359,6 @@ trim_1_from_fq_gfq(
     }
   }
 #pragma omp barrier
-  if (DEBUG) {
-    if (tid == 0) {
-      printf("In normal trim, thread bin size, %lu\n", prefix_sum[55]);
-    }
-  }
-
   for (index_t i = prefix_sum[tid]; i < prefix_sum[tid] + thread_bin[tid]; ++i) {
     frontier_queue[i] = temp_queue[i];
   }
@@ -372,8 +366,8 @@ trim_1_from_fq_gfq(
 
 inline static void
 get_queue(
-  vertex_t* thread_queue,
-  vertex_t* thread_bin,
+  const vertex_t* thread_queue,
+  const vertex_t* thread_bin,
   index_t* prefix_sum,
   index_t tid,
   vertex_t* temp_queue)
@@ -395,7 +389,7 @@ get_queue(
 inline static void
 generate_frontier_queue(
   const index_t vert_count,
-  index_t* scc_id,
+  const index_t* scc_id,
   const index_t thread_count,
   index_t* frontier_queue,
   index_t* thread_bin,
@@ -430,7 +424,7 @@ generate_frontier_queue(
 inline static void
 gfq_from_queue(
   const index_t vert_count,
-  index_t* scc_id,
+  const index_t* scc_id,
   const index_t thread_count,
   index_t* small_queue,
   index_t* thread_bin,
@@ -472,9 +466,9 @@ gfq_from_queue(
 
 inline static void
 bw_gfq_from_fw(
-  index_t* fw_sa,
+  const index_t* fw_sa,
   const index_t thread_count,
-  index_t* small_queue,
+  const index_t* small_queue,
   index_t* thread_bin,
   index_t* prefix_sum,
   index_t vert_beg,
@@ -511,9 +505,9 @@ bw_gfq_from_fw(
 
 inline static void
 gfq_fw_bw_from_queue(
-  index_t* sa,
+  const index_t* sa,
   const index_t thread_count,
-  index_t* small_queue,
+  const index_t* small_queue,
   index_t* thread_bin,
   index_t* prefix_sum,
   index_t vert_beg,
@@ -549,22 +543,19 @@ gfq_fw_bw_from_queue(
 inline static void
 gfq_origin(
   const index_t vert_count,
-  index_t* scc_id,
+  const index_t* scc_id,
   std::vector<index_t>& frontier_queue,
-  vertex_t vert_beg,
-  vertex_t vert_end,
-  long_t* fw_beg_pos,
-  vertex_t* fw_csr,
-  long_t* bw_beg_pos,
-  vertex_t* bw_csr,
+  const long_t* fw_beg_pos,
+  const vertex_t* fw_csr,
+  const long_t* bw_beg_pos,
+  const vertex_t* bw_csr,
   vertex_t* sub_fw_beg,
   vertex_t* sub_fw_csr,
   vertex_t* sub_bw_beg,
   vertex_t* sub_bw_csr,
-  vertex_t* front_comm,
-  long_t* work_comm,
+  std::vector<vertex_t>& front_comm,
+  std::vector<long_t>& work_comm,
   vertex_t world_rank,
-  vertex_t world_size,
   vertex_t* vert_map)
 {
   index_t index = 0;

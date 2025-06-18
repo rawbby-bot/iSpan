@@ -21,8 +21,6 @@ typedef std::int64_t long_t;
 #define NEGATIVE (int)-1
 #define ORPHAN (unsigned char)254
 #define UNVIS (long)-1
-#define DEBUG 0
-#define VERBOSE 0
 #define OUTPUT_TIME 1
 
 #define TRIM_TIMES 3

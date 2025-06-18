@@ -26,9 +26,6 @@ void
 scc_detection(
   const graph* g,
   int alpha,
-  int beta,
-  int gamma,
-  double theta,
   index_t thread_count,
   std::vector<double>& avg_time,
   int world_rank,
@@ -48,9 +45,9 @@ print_time_result(
 
 inline index_t
 pivot_selection(
-  index_t* scc_id,
-  long_t* fw_beg_pos,
-  long_t* bw_beg_pos,
+  const index_t* scc_id,
+  const long_t* fw_beg_pos,
+  const long_t* bw_beg_pos,
   index_t vert_beg,
   index_t vert_end,
   vertex_t* fw_csr,
@@ -87,17 +84,15 @@ pivot_selection(
 inline index_t
 pivot_selection_from_fq(
   index_t* scc_id,
-  index_t* fw_beg_pos,
-  index_t* bw_beg_pos,
+  const index_t* fw_beg_pos,
+  const index_t* bw_beg_pos,
   index_t vert_beg,
   index_t vert_end,
-  vertex_t* fw_csr,
-  vertex_t* bw_csr,
   std::vector<index_t>& max_pivot_list,
   std::vector<index_t>& max_degree_list,
   index_t tid,
   index_t thread_count,
-  index_t* small_queue
+  const index_t* small_queue
 
 )
 {
@@ -126,10 +121,6 @@ pivot_selection_from_fq(
       max_degree = max_degree_list[i];
       max_pivot = max_pivot_list[i];
     }
-  }
-  if (DEBUG) {
-    if (tid == 0)
-      printf("max_pivot, %lu, max_degree, %lu\n", max_pivot, max_degree);
   }
   return max_pivot;
 }

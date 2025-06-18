@@ -8,13 +8,10 @@
 
 inline static void
 degree_rank(
-  const index_t fq_size,
   index_t* scc_id,
-  const index_t thread_count,
   index_t* small_queue,
   index_t vert_beg,
   index_t vert_end,
-  index_t tid,
   index_t* mul_degree,
   index_t* degree_prop,
   index_t* fw_beg_pos,
@@ -54,7 +51,6 @@ degree_rank(
 
 inline static void
 color_propagation(
-  const index_t fq_size,
   index_t* scc_id,
   const index_t thread_count,
   index_t* small_queue,
@@ -66,7 +62,6 @@ color_propagation(
 
   index_t* bw_beg_pos,
   index_t* bw_csr,
-  index_t* mul_degree,
   index_t* degree_prop,
   index_t* color_times)
 {
@@ -162,16 +157,13 @@ inline static void
 color_identify(
   const index_t fq_size,
   index_t* scc_id,
-  const index_t thread_count,
   index_t* small_queue,
   index_t vert_beg,
   index_t vert_end,
   index_t* color,
   index_t* bw_beg_pos,
   index_t* bw_csr,
-  index_t* q,
-  index_t* mul_degree,
-  index_t* degree_prop)
+  index_t* q)
 {
   for (vertex_t fq_vert_id = vert_beg; fq_vert_id < vert_end; ++fq_vert_id) {
     vertex_t vert_id = small_queue[fq_vert_id];
@@ -239,8 +231,6 @@ color_init(
 inline static void
 color_statistic(index_t* scc_id,
                 index_t* small_queue,
-                index_t vert_beg,
-                index_t vert_end,
                 index_t tid,
                 index_t* color,
                 index_t* color_times,
@@ -294,8 +284,7 @@ graph_color(
   while (true) {
 #pragma omp barrier
     double time = wtime();
-    color_propagation(fq_size,
-                      scc_id,
+    color_propagation(scc_id,
                       thread_count,
                       small_queue,
                       vert_beg,
@@ -303,10 +292,9 @@ graph_color(
                       tid,
                       color,
                       color_change,
-
                       bw_beg_pos,
+
                       bw_csr,
-                      mul_degree,
                       degree_prop,
                       color_times);
 #pragma omp barrier
@@ -316,24 +304,19 @@ graph_color(
     time = wtime();
     color_identify(fq_size,
                    scc_id,
-                   thread_count,
                    small_queue,
                    vert_beg,
                    vert_end,
                    color,
                    bw_beg_pos,
                    bw_csr,
-                   q,
-                   mul_degree,
-                   degree_prop);
+                   q);
 #pragma omp barrier
     time_color_2 += wtime() - time;
 
     if (DEBUG) {
       color_statistic(scc_id,
                       small_queue,
-                      vert_beg,
-                      vert_end,
                       tid,
                       color,
                       color_times,

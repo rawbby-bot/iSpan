@@ -1,5 +1,10 @@
 #include "graph.h"
+
+#include "wtime.h"
+
 #include <vector>
+#include <cassert>
+
 graph::graph(
   const char* fw_beg_file,
   const char* fw_csr_file,
@@ -8,73 +13,70 @@ graph::graph(
 {
   double tm = wtime();
 
-  typedef std::int64_t index_tt;
-  typedef std::int64_t vertex_tt;
-
-  vert_count = fsize(fw_beg_file) / sizeof(index_tt) - 1;
-  edge_count = fsize(fw_csr_file) / sizeof(vertex_tt);
+  vert_count = fsize(fw_beg_file) / sizeof(index_t) - 1;
+  edge_count = fsize(fw_csr_file) / sizeof(vertex_t);
 
   FILE* file = fopen(fw_beg_file, "rb");
-  if (file == NULL) {
+  if (file == nullptr) {
     std::cout << fw_beg_file << " cannot open\n";
     exit(-1);
   }
 
-  std::vector<index_tt> tmp_beg_pos(vert_count + 1);
-  index_tt ret = fread(tmp_beg_pos.data(), sizeof(index_tt), vert_count + 1, file);
+  std::vector<index_t> tmp_beg_pos(vert_count + 1);
+  index_t ret = fread(tmp_beg_pos.data(), sizeof(index_t), vert_count + 1, file);
   assert(ret == vert_count + 1);
   fclose(file);
 
   file = fopen(fw_csr_file, "rb");
-  if (file == NULL) {
+  if (file == nullptr) {
     std::cout << fw_csr_file << " cannot open\n";
     exit(-1);
   }
 
-  std::vector<vertex_tt> tmp_csr(edge_count);
-  ret = fread(tmp_csr.data(), sizeof(vertex_tt), edge_count, file);
+  std::vector<vertex_t> tmp_csr(edge_count);
+  ret = fread(tmp_csr.data(), sizeof(vertex_t), edge_count, file);
   assert(ret == edge_count);
   fclose(file);
 
-  fw_beg_pos = new index_tt[vert_count + 1];
+  fw_beg_pos = new index_t[vert_count + 1];
   fw_csr = new vertex_t[edge_count];
 
   for (index_t i = 0; i < vert_count + 1; ++i)
-    fw_beg_pos[i] = (index_tt)tmp_beg_pos[i];
+    fw_beg_pos[i] = tmp_beg_pos[i];
 
-  for (index_tt i = 0; i < edge_count; ++i)
-    fw_csr[i] = (vertex_t)tmp_csr[i];
+  for (index_t i = 0; i < edge_count; ++i)
+    fw_csr[i] = tmp_csr[i];
 
   file = fopen(bw_beg_file, "rb");
-  if (file == NULL) {
+  if (file == nullptr) {
     std::cout << bw_beg_file << " cannot open\n";
     exit(-1);
   }
 
   tmp_beg_pos.assign(vert_count + 1, 0);
-  ret = fread(tmp_beg_pos.data(), sizeof(index_tt), vert_count + 1, file);
+  ret = fread(tmp_beg_pos.data(), sizeof(index_t), vert_count + 1, file);
   assert(ret == vert_count + 1);
   fclose(file);
 
   file = fopen(bw_csr_file, "rb");
-  if (file == NULL) {
+  if (file == nullptr) {
     std::cout << bw_csr_file << " cannot open\n";
     exit(-1);
   }
 
   tmp_csr.assign(edge_count, 0);
-  ret = fread(tmp_csr.data(), sizeof(vertex_tt), edge_count, file);
+  ret = fread(tmp_csr.data(), sizeof(vertex_t), edge_count, file);
   assert(ret == edge_count);
   fclose(file);
 
-  bw_beg_pos = new index_tt[vert_count + 1];
+  bw_beg_pos = new index_t[vert_count + 1];
   bw_csr = new vertex_t[edge_count];
 
-  for (index_tt i = 0; i < vert_count + 1; ++i)
-    bw_beg_pos[i] = (index_tt)tmp_beg_pos[i];
+  for (index_t i = 0; i < vert_count + 1; ++i)
+    bw_beg_pos[i] = tmp_beg_pos[i];
 
-  for (index_tt i = 0; i < edge_count; ++i)
-    bw_csr[i] = (vertex_t)tmp_csr[i];
+  for (index_t i = 0; i < edge_count; ++i)
+    bw_csr[i] = tmp_csr[i];
 
 
   std::cout << "Graph load (success): " << vert_count << " verts, "

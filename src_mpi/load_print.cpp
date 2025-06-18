@@ -12,7 +12,7 @@ graph_load(
   const char* bw_csr_file,
   std::vector<double>& avg_time)
 {
-  graph* g = new graph(fw_beg_file,
+  auto* g = new graph(fw_beg_file,
                        fw_csr_file,
                        bw_beg_file,
                        bw_csr_file);

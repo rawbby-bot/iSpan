@@ -20,7 +20,7 @@ graph::graph(
     exit(-1);
   }
 
-  index_tt* tmp_beg_pos = new index_tt[vert_count + 1];
+  auto tmp_beg_pos = new index_tt[vert_count + 1];
   index_tt ret = fread(tmp_beg_pos, sizeof(index_tt), vert_count + 1, file);
   assert(ret == vert_count + 1);
   fclose(file);
@@ -31,7 +31,7 @@ graph::graph(
     exit(-1);
   }
 
-  vertex_tt* tmp_csr = new vertex_tt[edge_count];
+  auto tmp_csr = new vertex_tt[edge_count];
   ret = fread(tmp_csr, sizeof(vertex_tt), edge_count, file);
   assert(ret == edge_count);
   fclose(file);

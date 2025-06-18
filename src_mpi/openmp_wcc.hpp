@@ -1,3 +1,5 @@
+#pragma once
+
 #include "graph.h"
 #include "util.h"
 #include "wtime.h"
@@ -32,11 +34,6 @@ openmp_wcc(
   color_t global_color_beg = global_color[0];
 
   while (true) {
-    if (DEBUG) {
-      if (tid == 0)
-        std::cout << "Iteration: " << level++ << "\n";
-    }
-
 #pragma omp barrier
 
     bool is_redirect_local = false;
@@ -125,20 +122,11 @@ openmp_wcc(
         break;
       }
 
-    if (DEBUG) {
-      if (tid == 0)
-        std::cout << "Global color: " << global_color[0]
-                  << " " << wtime() - tm << " seconds\n";
-    }
-
     if (tid == 0) {
       index_t color_count = 0;
       for (index_t i = global_color_beg; i < global_color[0]; i++) {
         if (color_redirect[i] == i)
           color_count++;
-      }
-      if (DEBUG) {
-        std::cout << "WCC groups: " << color_count << "\n";
       }
     }
 
