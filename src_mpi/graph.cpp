@@ -1,4 +1,5 @@
 #include "graph.h"
+#include <vector>
 graph::graph(
   const char* fw_beg_file,
   const char* fw_csr_file,
@@ -19,8 +20,8 @@ graph::graph(
     exit(-1);
   }
 
-  index_tt* tmp_beg_pos = new index_tt[vert_count + 1];
-  index_tt ret = fread(tmp_beg_pos, sizeof(index_tt), vert_count + 1, file);
+  std::vector<index_tt> tmp_beg_pos(vert_count + 1);
+  index_tt ret = fread(tmp_beg_pos.data(), sizeof(index_tt), vert_count + 1, file);
   assert(ret == vert_count + 1);
   fclose(file);
 
@@ -30,8 +31,8 @@ graph::graph(
     exit(-1);
   }
 
-  vertex_tt* tmp_csr = new vertex_tt[edge_count];
-  ret = fread(tmp_csr, sizeof(vertex_tt), edge_count, file);
+  std::vector<vertex_tt> tmp_csr(edge_count);
+  ret = fread(tmp_csr.data(), sizeof(vertex_tt), edge_count, file);
   assert(ret == edge_count);
   fclose(file);
 
@@ -50,8 +51,8 @@ graph::graph(
     exit(-1);
   }
 
-  tmp_beg_pos = new index_tt[vert_count + 1];
-  ret = fread(tmp_beg_pos, sizeof(index_tt), vert_count + 1, file);
+  tmp_beg_pos.assign(vert_count + 1, 0);
+  ret = fread(tmp_beg_pos.data(), sizeof(index_tt), vert_count + 1, file);
   assert(ret == vert_count + 1);
   fclose(file);
 
@@ -61,8 +62,8 @@ graph::graph(
     exit(-1);
   }
 
-  tmp_csr = new vertex_tt[edge_count];
-  ret = fread(tmp_csr, sizeof(vertex_tt), edge_count, file);
+  tmp_csr.assign(edge_count, 0);
+  ret = fread(tmp_csr.data(), sizeof(vertex_tt), edge_count, file);
   assert(ret == edge_count);
   fclose(file);
 
@@ -75,8 +76,6 @@ graph::graph(
   for (index_tt i = 0; i < edge_count; ++i)
     bw_csr[i] = (vertex_t)tmp_csr[i];
 
-  delete[] tmp_beg_pos;
-  delete[] tmp_csr;
 
   std::cout << "Graph load (success): " << vert_count << " verts, "
             << edge_count << " edges " << wtime() - tm << " second(s)\n";

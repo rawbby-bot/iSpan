@@ -5,6 +5,7 @@
 #include "wtime.h"
 
 #include <memory>
+#include <vector>
 
 inline auto
 prepare_assignment(const graph* g)
@@ -19,7 +20,7 @@ graph_load(
   const char* fw_csr_file,
   const char* bw_beg_file,
   const char* bw_csr_file,
-  double* avg_time);
+  std::vector<double>& avg_time);
 
 void
 scc_detection(
@@ -29,7 +30,7 @@ scc_detection(
   int gamma,
   double theta,
   index_t thread_count,
-  double* avg_time,
+  std::vector<double>& avg_time,
   int world_rank,
   int world_size,
   int run_time,
@@ -43,7 +44,7 @@ get_scc_result(
 void
 print_time_result(
   index_t run_times,
-  double* avg_time);
+  std::vector<double>& avg_time);
 
 inline index_t
 pivot_selection(
@@ -54,8 +55,8 @@ pivot_selection(
   index_t vert_end,
   vertex_t* fw_csr,
   vertex_t* bw_csr,
-  index_t* max_pivot_list,
-  index_t* max_degree_list,
+  std::vector<index_t>& max_pivot_list,
+  std::vector<index_t>& max_degree_list,
   index_t tid,
   index_t thread_count)
 {
@@ -92,8 +93,8 @@ pivot_selection_from_fq(
   index_t vert_end,
   vertex_t* fw_csr,
   vertex_t* bw_csr,
-  index_t* max_pivot_list,
-  index_t* max_degree_list,
+  std::vector<index_t>& max_pivot_list,
+  std::vector<index_t>& max_degree_list,
   index_t tid,
   index_t thread_count,
   index_t* small_queue

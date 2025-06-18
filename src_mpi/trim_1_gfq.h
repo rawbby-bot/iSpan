@@ -5,6 +5,7 @@
 #include "util.h"
 #include "wtime.h"
 #include <omp.h>
+#include <vector>
 
 inline void
 trim_1_first(
@@ -35,7 +36,7 @@ trim_1_first_gfq(
   index_t vert_beg,
   index_t vert_end,
   const index_t thread_count,
-  index_t* frontier_queue,
+  std::vector<index_t>& frontier_queue,
   index_t* thread_bin,
   index_t* prefix_sum,
   index_t tid)
@@ -549,7 +550,7 @@ inline static void
 gfq_origin(
   const index_t vert_count,
   index_t* scc_id,
-  index_t* frontier_queue,
+  std::vector<index_t>& frontier_queue,
   vertex_t vert_beg,
   vertex_t vert_end,
   long_t* fw_beg_pos,
