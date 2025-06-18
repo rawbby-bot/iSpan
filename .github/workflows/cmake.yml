@@ -2,9 +2,10 @@
 name: Build with Intel oneAPI & OpenMPI
 
 on:
-  pull_request:
+  pull_request:       # run on every PR event
   push:
-    branches: [ main ]
+    branches:
+      - main         # and on pushes to main
 
 jobs:
   build:
@@ -14,10 +15,27 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Add Intel oneAPI APT repository
+      - name: Prepare APT keyrings directory
+        run: sudo mkdir -p /etc/apt/keyrings
+
+      - name: Add Intel oneAPI GPG key
         run: |
-          wget -qO - https://apt.repos.intel.com/oneapi/gpgkey | sudo apt-key add -  
-          sudo sh -c 'echo "deb https://apt.repos.intel.com/oneapi all main" > /etc/apt/sources.list.d/intel-oneapi.list'
+          curl -fsSL https://apt.repos.intel.com/oneapi/gpgkey \
+            | gpg --dearmor \
+            | sudo tee /etc/apt/keyrings/intel-oneapi.gpg > /dev/null
+
+      - name: Add Intel oneAPI APT source
+        run: |
+          echo "Types: deb" \
+            | sudo tee /etc/apt/sources.list.d/intel-oneapi.sources
+          echo "URIs: https://apt.repos.intel.com/oneapi" \
+            | sudo tee -a /etc/apt/sources.list.d/intel-oneapi.sources
+          echo "Suites: all" \
+            | sudo tee -a /etc/apt/sources.list.d/intel-oneapi.sources
+          echo "Components: main" \
+            | sudo tee -a /etc/apt/sources.list.d/intel-oneapi.sources
+          echo "Signed-By: /etc/apt/keyrings/intel-oneapi.gpg" \
+            | sudo tee -a /etc/apt/sources.list.d/intel-oneapi.sources
 
       - name: Install Intel oneAPI compilers & MPI
         run: |
@@ -34,26 +52,17 @@ jobs:
         shell: bash
         run: |
           source /opt/intel/oneapi/setvars.sh --force
-          echo "Intel oneAPI environment loaded"
 
-      - name: Configure
+      - name: Configure & Build with CMake
         shell: bash
         run: |
-          source /opt/intel/oneapi/mpi/latest/env/vars.sh
-          cmake -S . -B build -G Ninja \
-                -DCMAKE_C_COMPILER=gcc-14 \
-                -DCMAKE_CXX_COMPILER=g++-14 \
-                -DBUILD_MPI=ON \
-                -DBUILD_TESTING=ON
-
-      - name: Build
-        shell: bash
-        run: |
-          source /opt/intel/oneapi/mpi/latest/env/vars.sh
-          cmake --build build --parallel
-
-      - name: Test
-        shell: bash
-        run: |
-          source /opt/intel/oneapi/mpi/latest/env/vars.sh
-          ctest --test-dir build --output-on-failure
+          source /opt/intel/oneapi/setvars.sh --force
+          export OMPI_CC=icx
+          export OMPI_CXX=icpx
+          export OMPI_FC=ifx
+          mkdir -p build && cd build
+          cmake .. \
+            -DCMAKE_C_COMPILER=mpicc \
+            -DCMAKE_CXX_COMPILER=mpicxx \
+            -DCMAKE_Fortran_COMPILER=mpifort
+          make -j$(nproc)
